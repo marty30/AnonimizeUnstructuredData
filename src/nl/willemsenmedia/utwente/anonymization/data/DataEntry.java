@@ -38,4 +38,8 @@ public class DataEntry {
 		}
 		return listString;
 	}
+
+	public void update(DataEntry newEntry) {
+		this.dataAttributes = newEntry.getDataAttributes();
+	}
 }

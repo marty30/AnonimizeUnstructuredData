@@ -1,5 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -12,7 +13,12 @@ import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.handling.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -32,26 +38,31 @@ public class DataviewController implements Initializable {
 	public void setData(DataEntry... data) {
 		this.data = Arrays.asList(data);
 		tabPane.getTabs().clear();
+		int tabnr = 0;
+		int max_tabs = 25;
 		for (DataEntry entry : this.data) {
-			entry = determineTechnique().anonymize(entry);
-			Tab tab = new Tab();
-			//Create title
-			String title = entry.getDataAttributes().get(0).getData();
-			if (title.length() > 15)
-				title = title.substring(0, 15) + "...";
-			tab.setText("Data: " + title);
+			entry.update(determineTechnique().anonymize(entry));
+			if (tabnr < max_tabs) {
+				Tab tab = new Tab();
+				//Create title
+				String title = entry.getDataAttributes().get(0).getData();
+				if (title.length() > 15)
+					title = title.substring(0, 15) + "...";
+				tab.setText("Data: " + title);
 
-			HBox hbox = new HBox();
-			String content = "";
-			for (DataAttribute attribute : entry.getDataAttributes()) {
-				content += attribute.getData() + "\n" + AttributeSeparator + "\n";
+				HBox hbox = new HBox();
+				String content = "";
+				for (DataAttribute attribute : entry.getDataAttributes()) {
+					content += attribute.getData() + "\n" + AttributeSeparator + "\n";
+				}
+				hbox.getChildren().add(new Label(content.trim()));
+				hbox.setAlignment(Pos.TOP_LEFT);
+				ScrollPane sp = new ScrollPane();
+				sp.setContent(hbox);
+				tab.setContent(sp);
+				tabPane.getTabs().add(tab);
+				tabnr++;
 			}
-			hbox.getChildren().add(new Label(content.trim()));
-			hbox.setAlignment(Pos.TOP_LEFT);
-			ScrollPane sp = new ScrollPane();
-			sp.setContent(hbox);
-			tab.setContent(sp);
-			tabPane.getTabs().add(tab);
 		}
 	}
 
@@ -83,5 +94,22 @@ public class DataviewController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
+	}
+
+	public void exportData(ActionEvent event) {
+		String filename = "export_" + LocalDate.now().toString().trim().replace("\\s+", "_") + ".txt";
+		try {
+			//TODO ervoor zorgen dat de bestanden niet overschreven worden
+			new File(filename).createNewFile();
+		} catch (IOException e) {
+			ErrorHandler.handleException(e);
+		}
+		try (PrintWriter out = new PrintWriter(filename)) {
+			for (DataEntry dataEntry : data)
+				out.println(dataEntry.toString());
+			PopupManager.info("Data geëxporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + filename + "\".");
+		} catch (FileNotFoundException e) {
+			ErrorHandler.handleException(e);
+		}
 	}
 }
