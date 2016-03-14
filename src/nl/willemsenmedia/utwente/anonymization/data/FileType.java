@@ -7,5 +7,5 @@ package nl.willemsenmedia.utwente.anonymization.data;
  */
 public enum FileType {
 	XLS, XLSX, CSV,
-	XML
+	XML, TXT
 }

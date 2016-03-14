@@ -35,6 +35,18 @@ public class HomeController implements Initializable {
 		if (file.exists()) {
 			//TODO van een file een lijst van data-entries maken
 			PopupManager.info("tada", null, "We gaan wat doen met het bestand: " + file.getAbsolutePath());
+			List<DataEntry> data = FileReader.readFile(file);
+			if (data == null || data.size() == 0) {
+				//Error
+				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
+				bestandsPad.setText("Kies aan bestand...");
+				setTooltipText("Klik op \"" + openBestand.getText() + "\" om een bestand te selecteren");
+			} else {
+				// Het bestand is ingelezen
+				DataEntry[] data_array = new DataEntry[data.size()];
+				data_array = data.toArray(data_array);
+				Main.OpenPageWithData(data_array);
+			}
 		} else {
 			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand " + bestandsPad.getText() + " niet vinden. Probeer het opnieuw.", null);
 		}
@@ -44,18 +56,11 @@ public class HomeController implements Initializable {
 		FileChooser fileChooser = new FileChooser();
 		File chosenFile = fileChooser.showOpenDialog(Main.mainStage);
 		if (chosenFile != null) {
-			List<DataEntry> data = FileReader.readFile(chosenFile);
-			if (data == null || data.size() == 0) {
-				//Error
-				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
-			} else {
-				// Het bestand is ingelezen
-				bestandsPad.setText(chosenFile.getAbsolutePath());
-				setTooltipText(chosenFile.getAbsolutePath());
-				DataEntry[] data_array = new DataEntry[data.size()];
-				data_array = data.toArray(data_array);
-				Main.OpenPageWithData(data_array);
-			}
+			bestandsPad.setText(chosenFile.getAbsolutePath());
+			setTooltipText(chosenFile.getAbsolutePath());
+
+			// Check if there should be any additional parameters
+
 		}
 	}
 

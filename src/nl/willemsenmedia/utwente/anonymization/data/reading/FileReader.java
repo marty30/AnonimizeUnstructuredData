@@ -5,10 +5,14 @@ import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,15 +33,32 @@ public class FileReader {
 					return readCSVFile(chosenFile);
 				case XML:
 					return readXMLFile(chosenFile);
+				case TXT:
 				default:
-					return new LinkedList<>();
+					return readTXTFile(chosenFile);
 			}
 		}
 		return null;
 	}
 
 	private static List<DataEntry> readCSVFile(File file) {
-		return null;
+		List<DataEntry> data = new ArrayList<>();
+		CSVParser parser;
+		try {
+			parser = CSVParser.parse(getContentFromFile(file), CSVFormat.EXCEL);
+
+			for (CSVRecord csvRecord : parser) {
+				DataEntry dataEntry = new DataEntry();
+
+				for (String csvAttribute : csvRecord) {
+					dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, csvAttribute));
+				}
+				data.add(dataEntry);
+			}
+		} catch (IOException e) {
+			ErrorHandler.handleException(e);
+		}
+		return data;
 	}
 
 	private static List<DataEntry> readExcelFile(File file) {
@@ -45,12 +66,16 @@ public class FileReader {
 	}
 
 	private static List<DataEntry> readXMLFile(File file) {
+		return readTXTFile(file);
+	}
+
+	private static List<DataEntry> readTXTFile(File file) {
 		LinkedList<DataEntry> list = new LinkedList<>();
-		list.add(new DataEntry(getContentFromFile(file)));
+		list.add(new DataEntry(new DataAttribute(DataType.UNSTRUCTURED, getContentFromFile(file))));
 		return list;
 	}
 
-	private static DataAttribute getContentFromFile(File file) {
+	private static String getContentFromFile(File file) {
 		try (BufferedReader br = new BufferedReader(new java.io.FileReader(file))) {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
@@ -60,7 +85,7 @@ public class FileReader {
 				sb.append(System.lineSeparator());
 				line = br.readLine();
 			}
-			return new DataAttribute(DataType.UNSTRUCTURED, sb.toString());
+			return sb.toString();
 		} catch (IOException e) {
 			ErrorHandler.handleException(e);
 			return null;
@@ -78,6 +103,8 @@ public class FileReader {
 				return FileType.CSV;
 			case ".xml":
 				return FileType.XML;
+			case ".txt":
+				return FileType.TXT;
 			default:
 				return null;
 		}

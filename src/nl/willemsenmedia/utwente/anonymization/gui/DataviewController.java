@@ -10,6 +10,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.handling.*;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -22,8 +23,8 @@ import java.util.ResourceBundle;
  * The controller for the dataview part of the GUI
  */
 public class DataviewController implements Initializable {
+	private static final String AttributeSeparator = "--------------------------";
 	private List<DataEntry> data;
-
 	@FXML
 	private TabPane tabPane;
 
@@ -31,18 +32,19 @@ public class DataviewController implements Initializable {
 	public void setData(DataEntry... data) {
 		this.data = Arrays.asList(data);
 		tabPane.getTabs().clear();
-		for (DataEntry entry : data) {
+		for (DataEntry entry : this.data) {
+			entry = determineTechnique().anonymize(entry);
 			Tab tab = new Tab();
 			//Create title
 			String title = entry.getDataAttributes().get(0).getData();
 			if (title.length() > 15)
-				title = title.substring(0, 15);
-			tab.setText("Tab: " + title);
+				title = title.substring(0, 15) + "...";
+			tab.setText("Data: " + title);
 
 			HBox hbox = new HBox();
 			String content = "";
 			for (DataAttribute attribute : entry.getDataAttributes()) {
-				content += attribute.getData() + "\n-----------------------\n";
+				content += attribute.getData() + "\n" + AttributeSeparator + "\n";
 			}
 			hbox.getChildren().add(new Label(content.trim()));
 			hbox.setAlignment(Pos.TOP_LEFT);
@@ -50,6 +52,31 @@ public class DataviewController implements Initializable {
 			sp.setContent(hbox);
 			tab.setContent(sp);
 			tabPane.getTabs().add(tab);
+		}
+	}
+
+	private AnonymizationTechnique determineTechnique() {
+		if (System.getProperty("technique") == null) {
+			System.setProperty("technique", "");
+		}
+		switch (System.getProperty("technique")) {
+			case "HashSentence":
+				return new HashSentence();
+			case "HashAll":
+				return new HashAll();
+			case "SmartHashing":
+				return new SmartHashing();
+			case "GeneralizeOrSuppress":
+			case "k-anonymity":
+				return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
+			default:
+				//Do nothing with the data
+				return new AnonymizationTechnique() {
+					@Override
+					public DataEntry anonymize(DataEntry dataEntry) {
+						return dataEntry;
+					}
+				};
 		}
 	}
 

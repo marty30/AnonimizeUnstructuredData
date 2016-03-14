@@ -18,6 +18,13 @@ public class DataEntry {
 		Collections.addAll(this.dataAttributes, dataAttributes);
 	}
 
+	public void addDataAttribute(DataAttribute... dataAttributes) {
+		if (this.dataAttributes == null)
+			this.dataAttributes = new LinkedList<>();
+		Collections.addAll(this.dataAttributes, dataAttributes);
+	}
+
+
 	public List<DataAttribute> getDataAttributes() {
 		return dataAttributes;
 	}
