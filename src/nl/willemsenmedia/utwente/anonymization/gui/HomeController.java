@@ -5,7 +5,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import nl.willemsenmedia.utwente.anonymization.Main;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
@@ -24,6 +26,9 @@ public class HomeController implements Initializable {
 	public Label bestandsPad;
 	@FXML
 	public Button verwerkBestand;
+	public Label option_key;
+	public GridPane additionalOptions;
+	public TextField option_value;
 	private Tooltip tooltip;
 
 	public HomeController() {
