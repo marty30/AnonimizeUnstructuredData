@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
@@ -45,7 +46,9 @@ public class DataviewController implements Initializable {
 			}
 			hbox.getChildren().add(new Label(content.trim()));
 			hbox.setAlignment(Pos.TOP_LEFT);
-			tab.setContent(hbox);
+			ScrollPane sp = new ScrollPane();
+			sp.setContent(hbox);
+			tab.setContent(sp);
 			tabPane.getTabs().add(tab);
 		}
 	}

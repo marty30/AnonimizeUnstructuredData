@@ -32,9 +32,12 @@ public class HomeController implements Initializable {
 
 	public void handleVerwerkBestand(ActionEvent event) {
 		File file = new File(bestandsPad.getText());
-
-		//TODO van een file een lijst van data-entries maken
-		PopupManager.info("tada", null, "We gaan wat doen met het bestand: " + file.getAbsolutePath());
+		if (file.exists()) {
+			//TODO van een file een lijst van data-entries maken
+			PopupManager.info("tada", null, "We gaan wat doen met het bestand: " + file.getAbsolutePath());
+		} else {
+			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand " + bestandsPad.getText() + " niet vinden. Probeer het opnieuw.", null);
+		}
 	}
 
 	public void handleOpenBestand(ActionEvent event) {

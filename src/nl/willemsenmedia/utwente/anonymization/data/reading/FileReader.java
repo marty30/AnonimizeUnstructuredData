@@ -1,9 +1,14 @@
 package nl.willemsenmedia.utwente.anonymization.data.reading;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
+import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,8 +46,25 @@ public class FileReader {
 
 	private static List<DataEntry> readXMLFile(File file) {
 		LinkedList<DataEntry> list = new LinkedList<>();
-//		list.add(new DataEntry(unstructuredText));
+		list.add(new DataEntry(getContentFromFile(file)));
 		return list;
+	}
+
+	private static DataAttribute getContentFromFile(File file) {
+		try (BufferedReader br = new BufferedReader(new java.io.FileReader(file))) {
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+
+			while (line != null) {
+				sb.append(line);
+				sb.append(System.lineSeparator());
+				line = br.readLine();
+			}
+			return new DataAttribute(DataType.UNSTRUCTURED, sb.toString());
+		} catch (IOException e) {
+			ErrorHandler.handleException(e);
+			return null;
+		}
 	}
 
 	private static FileType determineFileType(File file) {
