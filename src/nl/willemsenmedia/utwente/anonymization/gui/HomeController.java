@@ -49,7 +49,9 @@ public class HomeController implements Initializable {
 				// Het bestand is ingelezen
 				bestandsPad.setText(chosenFile.getAbsolutePath());
 				setTooltipText(chosenFile.getAbsolutePath());
-				Main.OpenPageWithData(data);
+				DataEntry[] data_array = new DataEntry[data.size()];
+				data_array = data.toArray(data_array);
+				Main.OpenPageWithData(data_array);
 			}
 		}
 	}

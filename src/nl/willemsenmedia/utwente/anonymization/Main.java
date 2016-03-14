@@ -10,7 +10,6 @@ import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
 import nl.willemsenmedia.utwente.anonymization.gui.PopupManager;
 
 import java.io.IOException;
-import java.util.List;
 
 public class Main extends Application {
 
@@ -20,7 +19,7 @@ public class Main extends Application {
 		launch(args);
 	}
 
-	public static void OpenPageWithData(List<DataEntry> data) {
+	public static void OpenPageWithData(DataEntry... data) {
 		FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("gui/dataview.fxml"));
 		try {
 			Parent root = fxmlLoader.load();
