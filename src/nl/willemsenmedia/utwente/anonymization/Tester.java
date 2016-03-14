@@ -4,7 +4,7 @@ import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.handling.AnonymizationTechnique;
-import nl.willemsenmedia.utwente.anonymization.data.handling.HashSentence;
+import nl.willemsenmedia.utwente.anonymization.data.handling.SmartHashing;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -17,7 +17,7 @@ public class Tester {
 	public static void main(String[] args) {
 		DataEntry dataEntry = new DataEntry(new DataAttribute(DataType.UNSTRUCTURED, testdata));
 
-		AnonymizationTechnique hashAll = new HashSentence();
+		AnonymizationTechnique hashAll = new SmartHashing();
 		System.out.println(hashAll.anonymize(dataEntry));
 	}
 }

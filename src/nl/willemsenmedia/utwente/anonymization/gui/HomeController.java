@@ -32,6 +32,8 @@ public class HomeController implements Initializable {
 
 	public void handleVerwerkBestand(ActionEvent event) {
 		File file = new File(bestandsPad.getText());
+
+		//TODO van een file een lijst van data-entries maken
 		PopupManager.info("tada", null, "We gaan wat doen met het bestand: " + file.getAbsolutePath());
 	}
 
