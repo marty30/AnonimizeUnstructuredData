@@ -3,6 +3,7 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.filterStopwords;
@@ -14,8 +15,11 @@ import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
  * This technique tries to find important words and only hashes them.
  */
 public class SmartHashing extends AnonymizationTechnique {
+	private ArrayList<String> importantWords;
+
 	@Override
 	public DataEntry anonymize(DataEntry dataEntry) {
+		determineImportantWords(dataEntry);
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
 			String[] sentences = attribute.getData().split("\\.");
@@ -34,6 +38,10 @@ public class SmartHashing extends AnonymizationTechnique {
 			attribute.setData(newData.toString());
 		}
 		return dataEntry;
+	}
+
+	private void determineImportantWords(DataEntry dataEntry) {
+		this.importantWords = new ArrayList<>();
 	}
 
 	private boolean isImportantWord(DataEntry dataEntry, String sentence, String word) {
