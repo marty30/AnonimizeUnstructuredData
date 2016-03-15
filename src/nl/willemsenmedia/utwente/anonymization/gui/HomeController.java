@@ -34,7 +34,7 @@ public class HomeController implements Initializable {
 	public void handleVerwerkBestand(ActionEvent event) {
 		File file = new File(bestandsPad.getText());
 		if (file.exists()) {
-			List<DataEntry> data = FileReader.readFile(file, additionalOptions.getChildrenUnmodifiable());
+			List<DataEntry> data = FileReader.readFile(file, DataviewController.convertAdditionalOptionsToMap(additionalOptions.getChildrenUnmodifiable()));
 			if (data == null || data.size() == 0) {
 				//Error
 				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);

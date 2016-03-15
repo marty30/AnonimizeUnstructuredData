@@ -1,7 +1,7 @@
 package nl.willemsenmedia.utwente.anonymization.data.reading;
 
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.TextField;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
@@ -10,11 +10,13 @@ import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.ss.usermodel.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,15 +26,23 @@ import java.util.List;
  * The helper class that can read the supported file types and change them into data entries.
  */
 public class FileReader {
-	public static List<DataEntry> readFile(File chosenFile, ObservableList<Node> childrenUnmodifiable) {
+	public static List<DataEntry> readFile(File chosenFile, HashMap<String, Node> additionalOptions) {
 		FileType fileType = determineFileType(chosenFile);
+		int beginrij = 0;
+		Node beginrijNode = additionalOptions.get("beginrij");
+		if (beginrijNode != null)
+			beginrij = Integer.parseInt(((TextField) beginrijNode).getText() == null ? "0" : "0" + ((TextField) beginrijNode).getText());
+		int eindrij = 0;
+		Node eindrijNode = additionalOptions.get("eindrij");
+		if (eindrijNode != null)
+			eindrij = Integer.parseInt(((TextField) eindrijNode).getText() == null ? "0" : "0" + ((TextField) eindrijNode).getText());
 		if (fileType != null) {
 			switch (fileType) {
 				case XLS:
 				case XLSX:
-					return readExcelFile(chosenFile);
+					return readExcelFile(chosenFile, beginrij, eindrij);
 				case CSV:
-					return readCSVFile(chosenFile);
+					return readCSVFile(chosenFile, beginrij, eindrij);
 				case XML:
 					return readXMLFile(chosenFile);
 				case TXT:
@@ -43,19 +53,22 @@ public class FileReader {
 		return null;
 	}
 
-	private static List<DataEntry> readCSVFile(File file) {
+	private static List<DataEntry> readCSVFile(File file, int beginrij, int eindrij) {
 		List<DataEntry> data = new ArrayList<>();
 		CSVParser parser;
 		try {
 			parser = CSVParser.parse(getContentFromFile(file), CSVFormat.EXCEL);
-
+			int huidigerij = 0;
 			for (CSVRecord csvRecord : parser) {
-				DataEntry dataEntry = new DataEntry();
+				if (huidigerij >= beginrij && huidigerij <= eindrij) {
+					DataEntry dataEntry = new DataEntry();
 
-				for (String csvAttribute : csvRecord) {
-					dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, csvAttribute));
+					for (String csvAttribute : csvRecord) {
+						dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, csvAttribute));
+					}
+					data.add(dataEntry);
 				}
-				data.add(dataEntry);
+				huidigerij++;
 			}
 		} catch (IOException e) {
 			ErrorHandler.handleException(e);
@@ -63,8 +76,70 @@ public class FileReader {
 		return data;
 	}
 
-	private static List<DataEntry> readExcelFile(File file) {
-		return null;
+	private static List<DataEntry> readExcelFile(File file, int beginrij, int eindrij) {
+		try {
+			Workbook wb = WorkbookFactory.create(file);
+			Sheet sheet = wb.getSheetAt(0);
+			Row row;
+			Cell cell;
+
+			int rows; // No of rows
+			if (eindrij <= 0)
+				eindrij = sheet.getLastRowNum();
+			rows = Math.min(sheet.getLastRowNum(), eindrij);
+
+			int cols = 0; // No of columns
+			int tmp = 0;
+
+			// This trick ensures that we get the data properly even if it doesn't start from first few rows
+			for (int i = 0; i < 10 || i < rows; i++) {
+				row = sheet.getRow(i);
+				if (row != null) {
+					tmp = sheet.getRow(i).getPhysicalNumberOfCells();
+					if (tmp > cols) cols = tmp;
+				}
+			}
+
+			List<DataEntry> data = new ArrayList<>();
+			for (int r = beginrij; r < rows; r++) {
+				row = sheet.getRow(r);
+				if (row != null) {
+					DataEntry dataEntry = new DataEntry();
+
+					for (int c = 0; c < cols; c++) {
+						cell = row.getCell(c);
+						if (cell != null) {
+							switch (cell.getCellType()) {
+								case Cell.CELL_TYPE_STRING:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getStringCellValue()));
+									break;
+								case Cell.CELL_TYPE_NUMERIC:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getNumericCellValue() + ""));
+									break;
+								case Cell.CELL_TYPE_FORMULA:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getCellFormula()));
+									break;
+								case Cell.CELL_TYPE_BOOLEAN:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getBooleanCellValue() + ""));
+									break;
+								case Cell.CELL_TYPE_ERROR:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, Byte.toString(cell.getErrorCellValue())));
+									break;
+								case Cell.CELL_TYPE_BLANK:
+								default:
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, ""));
+									break;
+							}
+						}
+					}
+					data.add(dataEntry);
+				}
+			}
+			return data;
+		} catch (Exception ioe) {
+			ErrorHandler.handleException(ioe);
+			return new ArrayList<>();
+		}
 	}
 
 	private static List<DataEntry> readXMLFile(File file) {
