@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -97,17 +98,24 @@ public class DataviewController implements Initializable {
 	}
 
 	public void exportData(ActionEvent event) {
-		String filename = "export_" + LocalDate.now().toString().trim().replace("\\s+", "_") + ".txt";
+		String filename = "export_" + LocalDate.now().toString().trim().replace("\\s+", "_");
+		String ext = ".txt";
 		try {
-			//TODO ervoor zorgen dat de bestanden niet overschreven worden
-			new File(filename).createNewFile();
+			File exportFile = new File(filename + ext);
+			if (!exportFile.exists())
+				exportFile.createNewFile();
+			else
+				filename += "_" + LocalTime.now().toString().trim().replace("\\s+", "_").replace(":", "");
+			exportFile = new File(filename + ext);
+			if (!exportFile.exists())
+				exportFile.createNewFile();
 		} catch (IOException e) {
 			ErrorHandler.handleException(e);
 		}
-		try (PrintWriter out = new PrintWriter(filename)) {
+		try (PrintWriter out = new PrintWriter(filename + ext)) {
 			for (DataEntry dataEntry : data)
 				out.println(dataEntry.toString());
-			PopupManager.info("Data geëxporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + filename + "\".");
+			PopupManager.info("Data geëxporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + filename + ext + "\".");
 		} catch (FileNotFoundException e) {
 			ErrorHandler.handleException(e);
 		}
