@@ -1,5 +1,7 @@
 package nl.willemsenmedia.utwente.anonymization.data.reading;
 
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
@@ -22,7 +24,7 @@ import java.util.List;
  * The helper class that can read the supported file types and change them into data entries.
  */
 public class FileReader {
-	public static List<DataEntry> readFile(File chosenFile) {
+	public static List<DataEntry> readFile(File chosenFile, ObservableList<Node> childrenUnmodifiable) {
 		FileType fileType = determineFileType(chosenFile);
 		if (fileType != null) {
 			switch (fileType) {
@@ -92,7 +94,7 @@ public class FileReader {
 		}
 	}
 
-	private static FileType determineFileType(File file) {
+	public static FileType determineFileType(File file) {
 		String ext = file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(".")).toLowerCase();
 		switch (ext) {
 			case ".xlsx":
@@ -106,7 +108,7 @@ public class FileReader {
 			case ".txt":
 				return FileType.TXT;
 			default:
-				return null;
+				return FileType.ONBEKEND;
 		}
 	}
 }

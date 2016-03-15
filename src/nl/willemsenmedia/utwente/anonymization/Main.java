@@ -2,6 +2,7 @@ package nl.willemsenmedia.utwente.anonymization;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -10,16 +11,29 @@ import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
 import nl.willemsenmedia.utwente.anonymization.gui.PopupManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class Main extends Application {
 
 	public static Stage mainStage = null;
 
 	public static void main(String[] args) {
-		launch(args);
+		if (args.length > 0) {
+			System.setProperty("technique", args[0]);
+			if (args.length == 2) {
+				System.setProperty("k", args[1]);
+			}
+		}
+		if (System.getProperty("technique") == null) {
+			System.err.println("Er moet een techniek bepaald zijn, anders werkt de applicatie niet!");
+			System.err.println();
+			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???}");
+			System.exit(-1);
+		} else
+			launch(args);
 	}
 
-	public static void OpenPageWithData(DataEntry... data) {
+	public static void OpenPageWithData(HashMap<String, Node> additionalOptions, DataEntry... data) {
 		FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("gui/dataview.fxml"));
 		try {
 			Parent root = fxmlLoader.load();
@@ -28,6 +42,7 @@ public class Main extends Application {
 			PopupManager.error(null, null, null, e);
 		}
 		DataviewController controller = fxmlLoader.getController();
+		controller.setAdditionalOptions(additionalOptions);
 		controller.setData(data);
 	}
 

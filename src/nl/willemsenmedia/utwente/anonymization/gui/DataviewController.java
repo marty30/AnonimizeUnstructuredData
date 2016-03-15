@@ -1,13 +1,12 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
@@ -21,6 +20,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -34,13 +34,27 @@ public class DataviewController implements Initializable {
 	private List<DataEntry> data;
 	@FXML
 	private TabPane tabPane;
+	private HashMap<String, Node> additionalOptions;
 
+	public static HashMap<String, Node> convertAdditionalOptionsToMap(ObservableList<Node> additionalOptions) {
+		HashMap<String, Node> mapAdditionalOptions = new HashMap<>();
+		for (Node option : additionalOptions) {
+			mapAdditionalOptions.put(option.getId(), option);
+		}
+		return mapAdditionalOptions;
+	}
 
 	public void setData(DataEntry... data) {
 		this.data = Arrays.asList(data);
 		tabPane.getTabs().clear();
 		int tabnr = 0;
 		int max_tabs = 25;
+		//Detemine some additional things from the options
+		Node bevat_kopteksten = additionalOptions.get("bevat_kopteksten");
+		if (bevat_kopteksten != null && ((CheckBox) bevat_kopteksten).isSelected()) {
+			//Er zijn kopteksten.
+			PopupManager.info("Er zijn kopteksten!", null, null);
+		}
 		for (DataEntry entry : this.data) {
 			entry.update(determineTechnique().anonymize(entry));
 			if (tabnr < max_tabs) {
@@ -119,5 +133,9 @@ public class DataviewController implements Initializable {
 		} catch (FileNotFoundException e) {
 			ErrorHandler.handleException(e);
 		}
+	}
+
+	public void setAdditionalOptions(HashMap<String, Node> additionalOptions) {
+		this.additionalOptions = additionalOptions;
 	}
 }
