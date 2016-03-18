@@ -95,7 +95,7 @@ public class FileReader {
 			rows = Math.min(sheet.getLastRowNum(), eindrij);
 
 			int cols = 0; // No of columns
-			int tmp = 0;
+			int tmp;
 
 			// This trick ensures that we get the data properly even if it doesn't start from first few rows
 			for (int i = 0; i < 10 || i < rows; i++) {
@@ -185,12 +185,16 @@ public class FileReader {
 
 	private static List<DataEntry> readTXTFile(File file) {
 		LinkedList<DataEntry> list = new LinkedList<>();
-		list.add(new DataEntry(new DataAttribute(DataType.UNSTRUCTURED, getContentFromFile(file))));
+		try {
+			list.add(new DataEntry(new DataAttribute(DataType.UNSTRUCTURED, getContentFromFile(file))));
+		} catch (IOException e) {
+			ErrorHandler.handleException(e);
+		}
 		return list;
 	}
 
-	private static String getContentFromFile(File file) {
-		try (BufferedReader br = new BufferedReader(new java.io.FileReader(file))) {
+	private static String getContentFromFile(File file) throws IOException {
+		BufferedReader br = new BufferedReader(new java.io.FileReader(file));
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
 
@@ -200,10 +204,6 @@ public class FileReader {
 				line = br.readLine();
 			}
 			return sb.toString();
-		} catch (IOException e) {
-			ErrorHandler.handleException(e);
-			return null;
-		}
 	}
 
 	public static FileType determineFileType(File file) {
