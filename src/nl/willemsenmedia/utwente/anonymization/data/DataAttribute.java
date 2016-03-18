@@ -9,9 +9,15 @@ package nl.willemsenmedia.utwente.anonymization.data;
 public class DataAttribute {
 	private DataType dataType;
 	private String data;
+	private String name;
 
 	public DataAttribute(DataType dataType, String data) {
+		this(dataType, null, data);
+	}
+
+	public DataAttribute(DataType dataType, String name, String data) {
 		this.dataType = dataType;
+		this.name = name;
 		this.data = data;
 	}
 
@@ -29,6 +35,9 @@ public class DataAttribute {
 
 	@Override
 	public String toString() {
-		return dataType.toString() + ": " + data;
+		if (name != null)
+			return name + ": " + data + " (" + dataType.toString() + ")";
+		else
+			return dataType.toString() + ": " + data;
 	}
 }

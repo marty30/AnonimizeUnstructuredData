@@ -1,6 +1,7 @@
 package nl.willemsenmedia.utwente.anonymization.data.reading;
 
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
@@ -36,13 +37,18 @@ public class FileReader {
 		Node eindrijNode = additionalOptions.get("eindrij");
 		if (eindrijNode != null)
 			eindrij = Integer.parseInt(((TextField) eindrijNode).getText() == null ? "0" : "0" + ((TextField) eindrijNode).getText());
+		boolean bevatKopteksten = false;
+		Node koptekstenNode = additionalOptions.get("bevat_kopteksten");
+		if (koptekstenNode != null) {
+			bevatKopteksten = ((CheckBox) koptekstenNode).isSelected();
+		}
 		if (fileType != null) {
 			switch (fileType) {
 				case XLS:
 				case XLSX:
-					return readExcelFile(chosenFile, beginrij, eindrij);
+					return readExcelFile(chosenFile, bevatKopteksten, beginrij, eindrij);
 				case CSV:
-					return readCSVFile(chosenFile, beginrij, eindrij);
+					return readCSVFile(chosenFile, bevatKopteksten, beginrij, eindrij);
 				case XML:
 					return readXMLFile(chosenFile);
 				case TXT:
@@ -53,7 +59,7 @@ public class FileReader {
 		return null;
 	}
 
-	private static List<DataEntry> readCSVFile(File file, int beginrij, int eindrij) {
+	private static List<DataEntry> readCSVFile(File file, boolean bevatKopteksten, int beginrij, int eindrij) {
 		List<DataEntry> data = new ArrayList<>();
 		CSVParser parser;
 		try {
@@ -76,7 +82,7 @@ public class FileReader {
 		return data;
 	}
 
-	private static List<DataEntry> readExcelFile(File file, int beginrij, int eindrij) {
+	private static List<DataEntry> readExcelFile(File file, boolean bevatKopteksten, int beginrij, int eindrij) {
 		try {
 			Workbook wb = WorkbookFactory.create(file);
 			Sheet sheet = wb.getSheetAt(0);
@@ -100,6 +106,37 @@ public class FileReader {
 				}
 			}
 
+			//Handle the headers
+			List<String> headers = new LinkedList<>();
+			if (bevatKopteksten) {
+				for (int i = 0; i < cols; i++) {
+					cell = sheet.getRow(0).getCell(i);
+					if (cell != null) {
+						switch (cell.getCellType()) {
+							case Cell.CELL_TYPE_STRING:
+								headers.add(i, cell.getStringCellValue());
+								break;
+							case Cell.CELL_TYPE_NUMERIC:
+								headers.add(i, cell.getNumericCellValue() + "");
+								break;
+							case Cell.CELL_TYPE_FORMULA:
+								headers.add(i, cell.getCellFormula());
+								break;
+							case Cell.CELL_TYPE_BOOLEAN:
+								headers.add(i, cell.getBooleanCellValue() + "");
+								break;
+							case Cell.CELL_TYPE_ERROR:
+								headers.add(i, Byte.toString(cell.getErrorCellValue()));
+								break;
+							case Cell.CELL_TYPE_BLANK:
+							default:
+								headers.add(i, "");
+								break;
+						}
+					}
+				}
+			}
+
 			List<DataEntry> data = new ArrayList<>();
 			for (int r = beginrij; r < rows; r++) {
 				row = sheet.getRow(r);
@@ -111,23 +148,23 @@ public class FileReader {
 						if (cell != null) {
 							switch (cell.getCellType()) {
 								case Cell.CELL_TYPE_STRING:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getStringCellValue()));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), cell.getStringCellValue()));
 									break;
 								case Cell.CELL_TYPE_NUMERIC:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getNumericCellValue() + ""));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), cell.getNumericCellValue() + ""));
 									break;
 								case Cell.CELL_TYPE_FORMULA:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getCellFormula()));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), cell.getCellFormula()));
 									break;
 								case Cell.CELL_TYPE_BOOLEAN:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, cell.getBooleanCellValue() + ""));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), cell.getBooleanCellValue() + ""));
 									break;
 								case Cell.CELL_TYPE_ERROR:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, Byte.toString(cell.getErrorCellValue())));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), Byte.toString(cell.getErrorCellValue())));
 									break;
 								case Cell.CELL_TYPE_BLANK:
 								default:
-									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, ""));
+									dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), ""));
 									break;
 							}
 						}
