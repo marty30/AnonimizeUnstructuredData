@@ -16,10 +16,7 @@ import org.apache.poi.ss.usermodel.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Martijn on 19-2-2016.
@@ -64,13 +61,29 @@ public class FileReader {
 		CSVParser parser;
 		try {
 			parser = CSVParser.parse(getContentFromFile(file), CSVFormat.EXCEL);
+			Iterator<CSVRecord> iter = parser.iterator();
+			//Handle the headers
+			List<String> headers = new LinkedList<>();
+			if (bevatKopteksten) {
+				CSVRecord headerrow = iter.next();
+				int i = 0;
+				for (String csvAttribute : headerrow) {
+					headers.add(i, csvAttribute);
+					i++;
+				}
+			}
+
 			int huidigerij = 0;
-			for (CSVRecord csvRecord : parser) {
-				if (huidigerij >= beginrij && huidigerij <= eindrij) {
+			CSVRecord csvRecord;
+			while (iter.hasNext()) {
+				csvRecord = iter.next();
+				if (huidigerij >= beginrij && (huidigerij <= eindrij || eindrij <= 0)) {
 					DataEntry dataEntry = new DataEntry();
 
+					int c = 0;
 					for (String csvAttribute : csvRecord) {
-						dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, csvAttribute));
+						dataEntry.addDataAttribute(new DataAttribute(DataType.UNSTRUCTURED, headers.get(c), csvAttribute));
+						c++;
 					}
 					data.add(dataEntry);
 				}
