@@ -111,6 +111,7 @@ public class DataviewController implements Initializable {
 
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public void exportData(ActionEvent event) {
 		String filename = "export_" + LocalDate.now().toString().trim().replace("\\s+", "_");
 		String ext = ".txt";

@@ -15,7 +15,7 @@ import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
  * This technique tries to find important words and only hashes them.
  */
 public class SmartHashing extends AnonymizationTechnique {
-	private ArrayList<String> importantWords;
+	private static ArrayList<String> importantWords = new ArrayList<>();
 
 	@Override
 	public DataEntry anonymize(DataEntry dataEntry) {
@@ -41,11 +41,23 @@ public class SmartHashing extends AnonymizationTechnique {
 	}
 
 	private void determineImportantWords(DataEntry dataEntry) {
-		this.importantWords = new ArrayList<>();
+		//TODO determine important words
+		for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
+			//Get the sentences
+			String[] sentences = dataAttribute.getData().split("\\.\\s");
+			for (String sentence : sentences) {
+				String[] words = sentence.split("\\s+");
+				// The following rules are applied to determine if the current word is of general importance:
+				// The word is the main thing of the sentence. This can be so for several reasons:
+				// 1. The only word (notice, skip abbreviations like i.e. and a.s.a.p.)
+
+				// 2. The only verb
+				//
+			}
+		}
 	}
 
 	private boolean isImportantWord(DataEntry dataEntry, String sentence, String word) {
-		//TODO determine important words
-		return "nog".equals(word);
+		return importantWords.indexOf(word) > -1;
 	}
 }
