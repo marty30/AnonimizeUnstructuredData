@@ -4,8 +4,9 @@ package nl.willemsenmedia.utwente.anonymization;
 //import org.python.core.PyObject;
 
 import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
+import org.jaxen.saxpath.SAXPathException;
 
-import javax.xml.bind.JAXBException;
+import javax.xml.xpath.XPathException;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -48,11 +49,20 @@ public class Tester {
 
 
 		try {
+			long time0 = System.currentTimeMillis();
 			ODWNReader odwnReader = ODWNReader.getInstance();
-//			System.out.println("word: " + odwnReader.getWord("boom"));
-			System.out.println("lemma: " + odwnReader.getLemma("boom").getWrittenForm());
+			long time1 = System.currentTimeMillis();
+			System.out.println("lemma: " + odwnReader.getWord("boom"));
+			long time2 = System.currentTimeMillis();
+			System.out.println("lemma_old: " + odwnReader.getWord_nonJAXB("boom"));
+			long time3 = System.currentTimeMillis();
 
-		} catch (JAXBException e) {
+			System.out.println();
+			System.out.println("---------");
+			System.out.println("Tijd 1: " + (time1 - time0) + "+" + (time2 - time1) + "=" + (time2 - time0));
+			System.out.println("Tijd 2: " + (time3 - time2));
+
+		} catch (SAXPathException | XPathException e) {
 			e.printStackTrace();
 		}
 	}

@@ -2,6 +2,7 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,13 +52,14 @@ public class SmartHashing extends AnonymizationTechnique {
 				// The word is the main thing of the sentence. This can be so for several reasons:
 				// 1. The only word (notice, skip abbreviations like i.e. and a.s.a.p.)
 
-				// 2. The only verb
-				//
+				// 2. The word is a noun
+				// Located in SmartHasing#isImportantWord()
+				// 3. The word starts with a captial letter
 			}
 		}
 	}
 
 	private boolean isImportantWord(DataEntry dataEntry, String sentence, String word) {
-		return importantWords.indexOf(word) > -1;
+		return importantWords.indexOf(word) > -1 || "noun".equals(ODWNReader.getInstance().getWordType(word));
 	}
 }
