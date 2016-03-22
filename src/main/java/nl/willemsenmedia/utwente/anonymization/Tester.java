@@ -4,9 +4,8 @@ package nl.willemsenmedia.utwente.anonymization;
 //import org.python.core.PyObject;
 
 import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
-import org.jaxen.saxpath.SAXPathException;
 
-import javax.xml.xpath.XPathException;
+import javax.xml.bind.JAXBException;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -47,10 +46,13 @@ public class Tester {
 //		PyObject result = wordNet.getWord("boom");
 //		System.out.println(result);
 
-		ODWNReader odwnReader = new ODWNReader();
+
 		try {
-			System.out.println("word: " + odwnReader.getWord("boom"));
-		} catch (SAXPathException | XPathException e) {
+			ODWNReader odwnReader = ODWNReader.getInstance();
+//			System.out.println("word: " + odwnReader.getWord("boom"));
+			System.out.println("lemma: " + odwnReader.getLemma("boom").getWrittenForm());
+
+		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
 	}

@@ -6,33 +6,67 @@ import jlibs.xml.sax.dog.NodeItem;
 import jlibs.xml.sax.dog.XMLDog;
 import jlibs.xml.sax.dog.XPathResults;
 import jlibs.xml.sax.dog.expr.Expression;
-import jlibs.xml.sax.dog.sniff.DOMBuilder;
-import jlibs.xml.sax.dog.sniff.Event;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.xml_objects.Lemma;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.xml_objects.LexicalEntry;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.xml_objects.LexicalResource;
 import org.jaxen.saxpath.SAXPathException;
 import org.xml.sax.InputSource;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.xpath.XPathException;
+import java.io.File;
 import java.util.List;
 
 /**
  * Created by Martijn on 21-3-2016.
  */
 public class ODWNReader {
+	private static ODWNReader instance;
+	private final LexicalResource lexicalResource;
 
-	public String getWord(String word) throws SAXPathException, XPathException {
+	private ODWNReader() throws JAXBException {
+		File file = new File(this.getClass().getClassLoader().getResource("odwn_orbn_gwg-LMF_1.3.xml").getFile());
+		JAXBContext jaxbContext = JAXBContext.newInstance(LexicalResource.class);
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		lexicalResource = (LexicalResource) jaxbUnmarshaller.unmarshal(file);
+	}
+
+	public static ODWNReader getInstance() throws JAXBException {
+		if (instance == null)
+			instance = new ODWNReader();
+		return instance;
+	}
+
+	public String getWord_nonJAXB(String word) throws SAXPathException, XPathException {
 		DefaultNamespaceContext nsContext = new DefaultNamespaceContext();
 
 		XMLDog dog = new XMLDog(nsContext);
-		Event event = dog.createEvent();
-		XPathResults results = new XPathResults(event);
-		event.setListener(results);
-		event.setXMLBuilder(new DOMBuilder());
 		Expression xpath1 = dog.addXPath("//LexicalEntry[@partOfSpeech=\"verb\"]/*");
-		dog.sniff(event, new InputSource(this.getClass().getClassLoader().getResource("odwn_orbn_gwg-LMF_1.3.xml").getFile()));
+		XPathResults results = dog.sniff(new InputSource(this.getClass().getClassLoader().getResource("odwn_orbn_gwg-LMF_1.3.xml").getFile()));
 		if (xpath1.resultType.equals(DataType.NODESET)) {
 			List<NodeItem> list = (List<NodeItem>) results.getResult(xpath1);
-			System.out.println(list.isEmpty() ? null : list.get(0).value);
+			list.get(0).printTo(System.err);
+			return (list.isEmpty() ? null : list.get(0).toString());
 		}
 		return null;
+	}
+
+	public LexicalEntry getLexicalEntry(String word) {
+		for (LexicalEntry le : lexicalResource.getLexicon().getLexicalEntry()) {
+			if (le.getLemma().getWrittenForm().equals(word)) {
+				return le;
+			}
+		}
+		return null;
+	}
+
+	public Lemma getLemma(String word) {
+		return getLexicalEntry(word).getLemma();
+	}
+
+	public String getWord(String word) {
+		return getLexicalEntry(word).getLemma().getWrittenForm();
 	}
 }
