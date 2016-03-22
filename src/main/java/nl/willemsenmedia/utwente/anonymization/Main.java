@@ -34,7 +34,7 @@ public class Main extends Application {
 	}
 
 	public static void OpenPageWithData(HashMap<String, Node> additionalOptions, DataEntry... data) {
-		FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("gui/dataview.fxml"));
+		FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getClassLoader().getResource("gui/dataview.fxml"));
 		try {
 			Parent root = fxmlLoader.load();
 			mainStage.setScene(new Scene(root, 1024, 768));
@@ -49,7 +49,7 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		mainStage = primaryStage;
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("gui/home.fxml"));
+		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("gui/home.fxml"));
 		Parent root = fxmlLoader.load();
 		primaryStage.setTitle("Anonimiseer ongestructureerde data");
 		primaryStage.setScene(new Scene(root, 300, 275));

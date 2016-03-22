@@ -1,7 +1,12 @@
 package nl.willemsenmedia.utwente.anonymization;
 
-import nl.willemsenmedia.utwente.anonymization.nlp.OpenDutchWordNet;
-import org.python.core.PyObject;
+//import nl.willemsenmedia.utwente.anonymization.nlp.OpenDutchWordNet;
+//import org.python.core.PyObject;
+
+import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
+import org.jaxen.saxpath.SAXPathException;
+
+import javax.xml.xpath.XPathException;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -38,8 +43,15 @@ public class Tester {
 //		JythonObjectFactory jythonFactory = new JythonObjectFactory(TestPython.class, "nl.willemsenmedia.utwente.anonymization.nlp.TestPython", "nl.willemsenmedia.utwente.anonymization.nlp.testpythonpy");
 //		System.out.println(((TestPython)jythonFactory.createObject()).getText());
 
-		OpenDutchWordNet wordNet = new OpenDutchWordNet();
-		PyObject result = wordNet.getWord("boom");
-		System.out.println(result);
+//		OpenDutchWordNet wordNet = new OpenDutchWordNet();
+//		PyObject result = wordNet.getWord("boom");
+//		System.out.println(result);
+
+		ODWNReader odwnReader = new ODWNReader();
+		try {
+			System.out.println("word: " + odwnReader.getWord("boom"));
+		} catch (SAXPathException | XPathException e) {
+			e.printStackTrace();
+		}
 	}
 }

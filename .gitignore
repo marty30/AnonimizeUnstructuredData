@@ -13,6 +13,8 @@ hs_err_pid*
 .idea
 *.iml
 out
+target
 
 # Project libs should not go to git
 OpenDutchWordnet
+odwn_orbn_gwg-LMF_1.3.xml
