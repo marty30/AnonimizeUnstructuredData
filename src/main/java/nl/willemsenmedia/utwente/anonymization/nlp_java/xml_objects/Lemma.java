@@ -8,6 +8,8 @@
 
 package nl.willemsenmedia.utwente.anonymization.nlp_java.xml_objects;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
+
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -82,24 +84,12 @@ public class Lemma {
 
 	// Manually added
 
-//    Commented omdat de TO-DO eerst opgelost moet worden, mocht dit realtime kunnen, dan is er geen property voor nodig
-//	  /**
-//     * Sets the value of the stem property
-//     * @param value
-//     */
-//    public void setStem(String value){
-//        this.stem = value;
-//    }
-//
-//    private String stem;
-
 	/**
 	 * Gets the stem from the writtenForm
 	 *
 	 * @return Stem of the word
 	 */
 	public String getStem() {
-		//TODO maybe use the stemmer here, otherwise use the setter if value is null
-		return null;
+		return DataModifier.getStem(writtenForm);
 	}
 }

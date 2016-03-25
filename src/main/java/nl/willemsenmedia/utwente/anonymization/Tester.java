@@ -3,10 +3,7 @@ package nl.willemsenmedia.utwente.anonymization;
 //import nl.willemsenmedia.utwente.anonymization.nlp.OpenDutchWordNet;
 //import org.python.core.PyObject;
 
-import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
-import org.jaxen.saxpath.SAXPathException;
-
-import javax.xml.xpath.XPathException;
+import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -48,22 +45,27 @@ public class Tester {
 //		System.out.println(result);
 
 
-		try {
-			long time0 = System.currentTimeMillis();
-			ODWNReader odwnReader = ODWNReader.getInstance();
-			long time1 = System.currentTimeMillis();
-			System.out.println("lemma: " + odwnReader.getWord("boom"));
-			long time2 = System.currentTimeMillis();
-			System.out.println("lemma_old: " + odwnReader.getWord_nonJAXB("boom"));
-			long time3 = System.currentTimeMillis();
+//		try {
+//			long time0 = System.currentTimeMillis();
+//			ODWNReader odwnReader = ODWNReader.getInstance();
+//			long time1 = System.currentTimeMillis();
+//			System.out.println("lemma: " + odwnReader.getWord("boom"));
+//			long time2 = System.currentTimeMillis();
+//			System.out.println("lemma_old: " + odwnReader.getWord_nonJAXB("boom"));
+//			long time3 = System.currentTimeMillis();
+//
+//			System.out.println();
+//			System.out.println("---------");
+//			System.out.println("Tijd 1: " + (time1 - time0) + "+" + (time2 - time1) + "=" + (time2 - time0));
+//			System.out.println("Tijd 2: " + (time3 - time2));
+//
+//		} catch (SAXPathException | XPathException e) {
+//			e.printStackTrace();
+//		}
 
-			System.out.println();
-			System.out.println("---------");
-			System.out.println("Tijd 1: " + (time1 - time0) + "+" + (time2 - time1) + "=" + (time2 - time0));
-			System.out.println("Tijd 2: " + (time3 - time2));
-
-		} catch (SAXPathException | XPathException e) {
-			e.printStackTrace();
+		String testdata = "Het gaat goed met Sjariefa. Ze zit op de VVE van de Wiltzangh,gaat daar straks ook naar het BaO.Ouders zijn tevreden. Behalve een verkoudheid is ze nooit ziek.Geen opvoedvragen van ouders.Sjariefa zou heel goed praten,maar zegt hier op CB geen woord! Verder wel ontw. cl,tekent alleen nog geen dichte cirkel. Gewichtscurve stijgt,S. krijgt veel zoete,mn zuiveldrankjes. Uitvoerig besproken,ook nav vraag van P. over het waarom van DM(bij M),en hypertensie bij fam. van P.UItgelegd dat bep. leefregels belangrijk zijn ter preventie.Ouders gaan nu meer water geven ipv Fristi etc.Sj. zit op tafel te spelen maar kijkt bij opdrachtjes schichtig naar P.Zit op haar tong te sabbelen en weigert te praten.M. zegt nog afspr. bij oogarts te hebben po 30-10,Landolt nu even uitgesteld. OOI jan. 2014. SaSt: M. is obv internist,gaat 2-wekelijks naar Zh.Prikt bloedsuikers en spuit 3x per dag insuline. Hefet begeleiding van diabetesverpleegkundige.Conc: Ouders hier beide betrokken,proberen S. te stimuleren,hebben geen hulpvraag.Zeggen: Op de VVE gaat het zo goed, en hier wil ze niet.Lijken geinteresserd in uitleg over de voeding.";
+		for (String word : testdata.split("\\s+")) {
+			System.out.println(word + " wordt " + DataModifier.getStem(word));
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package nl.willemsenmedia.utwente.anonymization.data;
 
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.dutchStemmer;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -18,6 +20,7 @@ public class DataModifier {
 	//TODO Deze salt ergens verbergen voor privacy.
 	private static final String SALT = "aasfbasf oaf if afbui aufi ba ufiabfoiasf ";
 	public static String[] stopwords = new String[]{"een", "de", "het"};
+	private static SnowballStemmer stemmer;
 
 	public static String filterStopwords(String data) {
 		StringBuilder filteredData = new StringBuilder();
@@ -46,5 +49,17 @@ public class DataModifier {
 
 	static String bin2hex(byte[] data) {
 		return String.format("%0" + (data.length * 2) + "X", new BigInteger(1, data));
+	}
+
+	public static String getStem(String word) {
+		if (stemmer == null) {
+			stemmer = new dutchStemmer();
+		}
+		stemmer.setCurrent(word);
+		boolean stemmingWorked = stemmer.stem();
+		if (!stemmingWorked) {
+			System.err.println("Stemming of " + word + " failed!");
+		}
+		return stemmer.getCurrent();
 	}
 }
