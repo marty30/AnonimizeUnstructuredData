@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<settings>
+    <setting name="technique" type="nl.willemsenmedia.utwente.anonymization.data.handling.AnonymizationTechnique"
+             value="SmartHashing" overwritable="false"/>
+
+    <!--Data selection options-->
+    <setting name="bevat_kopteksten" type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="beginrij" type="java.lang.Integer" value="0" overwritable="true"/>
+    <!--Note that -1 means the last row-->
+    <setting name="eindrij" type="java.lang.Integer" value="-1" overwritable="true"/>
+
+    <!--Pre processing options-->
+    <setting name="verwijder_lidwoorden" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="verwijder_voorzetsels" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="maak_alle_woorden_lowercase" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="maak_beginwoorden_lowercase" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="verwijder_leestekens" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="verwijder_datums" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="regexes" type="java.util.Map" overwritable="true">
+        <entry key="\b([Pp]|[Vv])\b" value="vader" comment="P -> vader"/>
+        <entry key="\b([Mm]|[dr])\b" value="moeder" comment="M -> moeder"/>
+    </setting>
+
+    <!--During processing - only available if SmartHashing is used-->
+    <setting name="anonimiseer_zelfstandige_naamwoorden" type="java.lang.Boolean" value="true" overwritable="true"/>
+    <setting name="anonimiseer_werkwoorden" type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="anonimiseer_datums" type="java.lang.Boolean" value="false" overwritable="true"/>
+</settings>

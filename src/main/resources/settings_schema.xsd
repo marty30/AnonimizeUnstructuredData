@@ -1,0 +1,43 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+           elementFormDefault="qualified">
+    <xs:element name="settings">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="setting" maxOccurs="unbounded" minOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>This settingsfile can be loaded into the AnonimizeUnstructuredData app
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType mixed="true">
+                        <xs:sequence>
+                            <xs:element name="entry" maxOccurs="unbounded" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute type="xs:string" name="regex_search" use="required"/>
+                                            <xs:attribute type="xs:string" name="regex_replace" use="required"/>
+                                            <xs:attribute type="xs:string" name="comment" use="optional" default=""/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="name" use="required"/>
+                        <xs:attribute type="settingsType" name="type" use="optional" default="java.lang.Boolean"/>
+                        <xs:attribute type="xs:string" name="value" use="optional"/>
+                        <xs:attribute type="xs:string" name="overwritable" use="optional" default="false"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="settingsType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="java.lang.Boolean"/>
+            <xs:enumeration value="java.lang.Integer"/>
+            <xs:enumeration value="java.lang.String"/>
+            <xs:enumeration value="java.util.Map"/>
+            <xs:enumeration value="nl.willemsenmedia.utwente.anonymization.data.handling.AnonymizationTechnique"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>
