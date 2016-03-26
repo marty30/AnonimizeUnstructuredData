@@ -12,11 +12,11 @@
     <!--Pre processing options-->
     <setting name="verwijder_lidwoorden" type="java.lang.Boolean" value="true" overwritable="false"/>
     <setting name="verwijder_voorzetsels" type="java.lang.Boolean" value="true" overwritable="false"/>
-    <setting name="maak_alle_woorden_lowercase" type="java.lang.Boolean" value="true" overwritable="false"/>
-    <setting name="maak_beginwoorden_lowercase" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <setting name="maak_alle_woorden_lowercase" type="java.lang.Boolean" value="true" overwritable="true"/>
+    <setting name="maak_beginwoorden_lowercase" type="java.lang.Boolean" value="true" overwritable="true"/>
     <setting name="verwijder_leestekens" type="java.lang.Boolean" value="true" overwritable="false"/>
-    <setting name="verwijder_datums" type="java.lang.Boolean" value="true" overwritable="false"/>
-    <setting name="regexes" screenname="RegExen die uitgevoerd moeten worden als deel van het pre-processing"
+    <setting name="verwijder_datums" type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="regexes" screenname="RegEx-en die uitgevoerd moeten worden als deel van het pre-processing"
              type="java.util.Map" overwritable="true">
         <entry regex_search="\b([Pp]|[Vv])\b" regex_replace="vader" comment="P -> vader"/>
         <entry regex_search="\b([Mm]|[dr])\b" regex_replace="moeder" comment="M -> moeder"/>

@@ -12,6 +12,7 @@ import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
+import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -25,10 +26,11 @@ public class HomeController implements Initializable {
 	public Label bestandsPad;
 	@FXML
 	public Button verwerkBestand;
+	@FXML
 	public GridPane additionalOptions;
 	private Tooltip tooltip;
 	private Settings settings;
-	private Control inputElement;
+	private String errors_settings;
 
 	public HomeController() {
 		tooltip = new Tooltip();
@@ -41,8 +43,10 @@ public class HomeController implements Initializable {
 			if (data == null || data.size() == 0) {
 				//Error
 				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
-				bestandsPad.setText("Kies aan bestand...");
-				setTooltipText("Klik op \"" + openBestand.getText() + "\" om een bestand te selecteren");
+				resetBestand();
+			} else if (!settingsAreValid()) {
+				//Error
+				PopupManager.error("Ongeldige settings", null, "Er is een probleem opgetreden tijdens het valideren van de instellingen: " + (errors_settings.equals("") ? "Onbekende fout." : errors_settings), null);
 			} else {
 				// Het bestand is ingelezen
 				DataEntry[] data_array = new DataEntry[data.size()];
@@ -50,8 +54,27 @@ public class HomeController implements Initializable {
 				Main.OpenPageWithData(settings, data_array);
 			}
 		} else {
-			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand " + bestandsPad.getText() + " niet vinden. Probeer het opnieuw.", null);
+			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand \"" + bestandsPad.getText() + "\" niet vinden. Probeer het opnieuw.", null);
+			resetBestand();
 		}
+	}
+
+	private boolean settingsAreValid() {
+		this.errors_settings = "";
+		//Requirements for the settings are as follows:
+		// - It is impossible to lowercase all words, but not all starting words
+		if (settings.getSettingsMap().get("maak_alle_woorden_lowercase").getValue().equals("true") && settings.getSettingsMap().get("maak_beginwoorden_lowercase").getValue().equals("false")) {
+			errors_settings += "\nJe kunt niet alle woorden lowercase maken, maar niet alle beginwoorden normaal laten.";
+		}
+		if (settings.getSettingsMap().get("verwijder_datums").getValue().equals("true") && settings.getSettingsMap().get("anonimiseer_datums").getValue().equals("true")) {
+			errors_settings += "\nJe kunt niet alle datums verwijderen én alle datums anonimiseren.";
+		}
+		return this.errors_settings.equals("");
+	}
+
+	private void resetBestand() {
+		bestandsPad.setText("Kies aan bestand...");
+		setTooltipText("Klik op \"" + openBestand.getText() + "\" om een bestand te selecteren");
 	}
 
 	public void handleOpenBestand(ActionEvent event) {
@@ -91,13 +114,31 @@ public class HomeController implements Initializable {
 				if ("regexes".equals(setting.getName())) {
 					//The regexes need a different markup then the other settings
 					GridPane regex_panel = new GridPane();
-					//TODO regexes netjes weergeven
-					regex_panel.addRow(0, new Label("TODO"));
+					regex_panel.add(new Label(setting.getScreenname()), 0, 0, 3, 1);
+					regex_panel.addRow(1, new Label("Search"), new Label("Replace"), new Label("Opmerkingen"));
+					int regex_row = 2;
+					for (int i = 0; i < setting.getContent().size(); i++) {
+						if (setting.getContent().get(i) instanceof JAXBElement) {
+							Settings.Setting.Entry entry = (Settings.Setting.Entry) ((JAXBElement) setting.getContent().get(i)).getValue();
+							TextField textField_search = new TextField();
+							textField_search.textProperty().setValue(entry.getRegexSearch());
+							textField_search.textProperty().addListener((ev) -> {
+								entry.setRegexSearch(textField_search.getText());
+							});
+							TextField textField_replace = new TextField();
+							textField_replace.textProperty().setValue(entry.getRegexReplace());
+							textField_replace.textProperty().addListener((ev) -> {
+								entry.setRegexReplace(textField_replace.getText());
+							});
+							regex_panel.add(textField_search, 0, regex_row);
+							regex_panel.add(textField_replace, 1, regex_row);
+							regex_panel.add(new Label(entry.getComment()), 2, regex_row);
+							regex_row++;
+						}
+					}
 					panel.add(regex_panel, 0, row, 2, 1);
 				} else {
-					inputElement = getInputElement(setting);
-
-					panel.addRow(row, new Label(setting.getScreenname()), inputElement);
+					panel.addRow(row, new Label(setting.getScreenname()), getInputElement(setting));
 				}
 				row++;
 			}
@@ -130,6 +171,49 @@ public class HomeController implements Initializable {
 							settings.getSettingsMap().get("beginrij").updateView();
 						});
 						break;
+					case "maak_alle_woorden_lowercase":
+						checkBox.setOnMouseClicked(event1 -> {
+							if (checkBox.isSelected()) {
+								settings.getSettingsMap().get("maak_beginwoorden_lowercase").setOverwritable(Boolean.FALSE);
+								settings.getSettingsMap().get("maak_beginwoorden_lowercase").setValue("true");
+							} else
+								settings.getSettingsMap().get("maak_beginwoorden_lowercase").setOverwritable(Boolean.TRUE);
+							settings.getSettingsMap().get("maak_beginwoorden_lowercase").updateView();
+						});
+						break;
+					case "maak_beginwoorden_lowercase":
+						checkBox.setOnMouseClicked(event1 -> {
+							if (checkBox.isSelected())
+								settings.getSettingsMap().get("maak_alle_woorden_lowercase").setOverwritable(Boolean.FALSE);
+
+							else {
+								settings.getSettingsMap().get("maak_alle_woorden_lowercase").setOverwritable(Boolean.TRUE);
+								settings.getSettingsMap().get("maak_alle_woorden_lowercase").setValue("false");
+							}
+							settings.getSettingsMap().get("maak_alle_woorden_lowercase").updateView();
+						});
+						break;
+					case "verwijder_datums":
+						checkBox.setOnMouseClicked(event1 -> {
+							if (checkBox.isSelected()) {
+								settings.getSettingsMap().get("anonimiseer_datums").setOverwritable(Boolean.FALSE);
+								settings.getSettingsMap().get("anonimiseer_datums").setValue("false");
+							} else
+								settings.getSettingsMap().get("anonimiseer_datums").setOverwritable(Boolean.TRUE);
+							settings.getSettingsMap().get("anonimiseer_datums").updateView();
+						});
+						break;
+					case "anonimiseer_datums":
+						checkBox.setOnMouseClicked(event1 -> {
+							if (checkBox.isSelected()) {
+								settings.getSettingsMap().get("verwijder_datums").setOverwritable(Boolean.FALSE);
+								settings.getSettingsMap().get("verwijder_datums").setValue("false");
+							} else {
+								settings.getSettingsMap().get("verwijder_datums").setOverwritable(Boolean.TRUE);
+							}
+							settings.getSettingsMap().get("verwijder_datums").updateView();
+						});
+						break;
 				}
 				return checkBox;
 			case JAVA_LANG_INTEGER:
@@ -150,12 +234,12 @@ public class HomeController implements Initializable {
 						break;
 					case "eindrij":
 						textField.textProperty().addListener((observable, oldValue, newValue) -> {
-							if (!newValue.matches("\\d*")) {
+							if (!newValue.matches("\\d*") && !newValue.equals("-") && !newValue.equals("-1")) {
 								textField.setText(oldValue);
 							} else
 								setting.setValue(newValue);
 
-							if (!newValue.equals("") && Integer.parseInt(newValue) < Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue())) {
+							if (!newValue.equals("") && (!newValue.equals("-") || !newValue.equals("-1")) && Integer.parseInt(newValue) < Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue())) {
 								textField.setStyle("-fx-control-inner-background: red");
 							} else {
 								textField.setStyle("");

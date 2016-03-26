@@ -97,7 +97,7 @@ public class Main extends Application {
 		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("gui/home.fxml"));
 		Parent root = fxmlLoader.load();
 		primaryStage.setTitle("Anonimiseer ongestructureerde data");
-		primaryStage.setScene(new Scene(root, 300, 275));
+		primaryStage.setScene(new Scene(root, 1024, 768));
 		HomeController controller = fxmlLoader.getController();
 		controller.setSettings(createSettingsFromFile(new File(System.getProperty("settings"))));
 		primaryStage.show();
