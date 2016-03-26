@@ -1,6 +1,7 @@
 package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 /**
  * Created by Martijn on 8-3-2016.
@@ -15,7 +16,7 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 	}
 
 	@Override
-	public DataEntry anonymize(DataEntry dataEntry) {
+	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
 		// Get data
 
 		// Sort all words

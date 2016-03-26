@@ -3,6 +3,7 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,11 @@ import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
  */
 public class SmartHashing extends AnonymizationTechnique {
 	private static ArrayList<String> importantWords = new ArrayList<>();
+	private Settings settings;
 
 	@Override
-	public DataEntry anonymize(DataEntry dataEntry) {
+	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+		this.settings = settings;
 		determineImportantWords(dataEntry);
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {

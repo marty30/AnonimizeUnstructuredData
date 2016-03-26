@@ -1,13 +1,11 @@
 package nl.willemsenmedia.utwente.anonymization.data.reading;
 
-import javafx.scene.Node;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -16,7 +14,10 @@ import org.apache.poi.ss.usermodel.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Martijn on 19-2-2016.
@@ -24,21 +25,11 @@ import java.util.*;
  * The helper class that can read the supported file types and change them into data entries.
  */
 public class FileReader {
-	public static List<DataEntry> readFile(File chosenFile, HashMap<String, Node> additionalOptions) {
+	public static List<DataEntry> readFile(File chosenFile, Settings settings) {
 		FileType fileType = determineFileType(chosenFile);
-		int beginrij = 0;
-		Node beginrijNode = additionalOptions.get("beginrij");
-		if (beginrijNode != null)
-			beginrij = Integer.parseInt(((TextField) beginrijNode).getText() == null ? "0" : "0" + ((TextField) beginrijNode).getText());
-		int eindrij = 0;
-		Node eindrijNode = additionalOptions.get("eindrij");
-		if (eindrijNode != null)
-			eindrij = Integer.parseInt(((TextField) eindrijNode).getText() == null ? "0" : "0" + ((TextField) eindrijNode).getText());
-		boolean bevatKopteksten = false;
-		Node koptekstenNode = additionalOptions.get("bevat_kopteksten");
-		if (koptekstenNode != null) {
-			bevatKopteksten = ((CheckBox) koptekstenNode).isSelected();
-		}
+		int beginrij = Integer.parseInt(settings.getSettingsMap().get("beginrij") == null ? "0" : settings.getSettingsMap().get("beginrij").getValue());
+		int eindrij = Integer.parseInt(settings.getSettingsMap().get("eindrij") == null ? "0" : settings.getSettingsMap().get("eindrij").getValue());
+		boolean bevatKopteksten = Boolean.parseBoolean(settings.getSettingsMap().get("bevat_kopteksten") == null ? "false" : settings.getSettingsMap().get("bevat_kopteksten").getValue());
 		if (fileType != null) {
 			switch (fileType) {
 				case XLS:
@@ -64,14 +55,16 @@ public class FileReader {
 			Iterator<CSVRecord> iter = parser.iterator();
 			//Handle the headers
 			List<String> headers = new LinkedList<>();
-			if (bevatKopteksten) {
+
 				CSVRecord headerrow = iter.next();
 				int i = 0;
 				for (String csvAttribute : headerrow) {
-					headers.add(i, csvAttribute);
+					if (bevatKopteksten) {
+						headers.add(i, csvAttribute);
+					} else
+						headers.add(i, "");
 					i++;
 				}
-			}
 
 			int huidigerij = 0;
 			CSVRecord csvRecord;
@@ -121,31 +114,33 @@ public class FileReader {
 
 			//Handle the headers
 			List<String> headers = new LinkedList<>();
-			if (bevatKopteksten) {
 				for (int i = 0; i < cols; i++) {
 					cell = sheet.getRow(0).getCell(i);
 					if (cell != null) {
-						switch (cell.getCellType()) {
-							case Cell.CELL_TYPE_STRING:
-								headers.add(i, cell.getStringCellValue());
-								break;
-							case Cell.CELL_TYPE_NUMERIC:
-								headers.add(i, cell.getNumericCellValue() + "");
-								break;
-							case Cell.CELL_TYPE_FORMULA:
-								headers.add(i, cell.getCellFormula());
-								break;
-							case Cell.CELL_TYPE_BOOLEAN:
-								headers.add(i, cell.getBooleanCellValue() + "");
-								break;
-							case Cell.CELL_TYPE_ERROR:
-								headers.add(i, Byte.toString(cell.getErrorCellValue()));
-								break;
-							case Cell.CELL_TYPE_BLANK:
-							default:
-								headers.add(i, "");
-								break;
-						}
+						if (bevatKopteksten) {
+							switch (cell.getCellType()) {
+								case Cell.CELL_TYPE_STRING:
+									headers.add(i, cell.getStringCellValue());
+									break;
+								case Cell.CELL_TYPE_NUMERIC:
+									headers.add(i, cell.getNumericCellValue() + "");
+									break;
+								case Cell.CELL_TYPE_FORMULA:
+									headers.add(i, cell.getCellFormula());
+									break;
+								case Cell.CELL_TYPE_BOOLEAN:
+									headers.add(i, cell.getBooleanCellValue() + "");
+									break;
+								case Cell.CELL_TYPE_ERROR:
+									headers.add(i, Byte.toString(cell.getErrorCellValue()));
+									break;
+								case Cell.CELL_TYPE_BLANK:
+								default:
+									headers.add(i, "");
+									break;
+							}
+						} else {
+							headers.add(i, "");
 					}
 				}
 			}

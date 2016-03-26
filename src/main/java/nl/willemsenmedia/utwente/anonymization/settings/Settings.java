@@ -12,7 +12,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -43,9 +45,10 @@ import java.util.List;
  *                   &lt;/element>
  *                 &lt;/sequence>
  *                 &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *                 &lt;attribute name="screenname" type="{http://www.w3.org/2001/XMLSchema}string" />
  *                 &lt;attribute name="type" type="{}settingsType" default="java.lang.Boolean" />
  *                 &lt;attribute name="value" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                 &lt;attribute name="overwritable" type="{http://www.w3.org/2001/XMLSchema}string" default="false" />
+ *                 &lt;attribute name="overwritable" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *               &lt;/restriction>
  *             &lt;/complexContent>
  *           &lt;/complexType>
@@ -56,7 +59,7 @@ import java.util.List;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "", propOrder = {
 		"setting"
 })
@@ -65,6 +68,7 @@ public class Settings {
 
 	@XmlElement(required = true)
 	protected List<Settings.Setting> setting;
+	protected Map<String, Setting> map;
 
 	/**
 	 * Gets the value of the setting property.
@@ -93,6 +97,16 @@ public class Settings {
 		return this.setting;
 	}
 
+	public Map<String, Setting> getSettingsMap() {
+		if (map == null || map.size() == 0) {
+			map = new HashMap<>();
+			for (Setting setting : this.setting) {
+				map.put(setting.getName(), setting);
+			}
+		}
+		return this.map;
+	}
+
 
 	/**
 	 * <p>Java class for anonymous complex type.
@@ -117,9 +131,10 @@ public class Settings {
 	 *         &lt;/element>
 	 *       &lt;/sequence>
 	 *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+	 *       &lt;attribute name="screenname" type="{http://www.w3.org/2001/XMLSchema}string" />
 	 *       &lt;attribute name="type" type="{}settingsType" default="java.lang.Boolean" />
 	 *       &lt;attribute name="value" type="{http://www.w3.org/2001/XMLSchema}string" />
-	 *       &lt;attribute name="overwritable" type="{http://www.w3.org/2001/XMLSchema}string" default="false" />
+	 *       &lt;attribute name="overwritable" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
 	 *     &lt;/restriction>
 	 *   &lt;/complexContent>
 	 * &lt;/complexType>
@@ -136,12 +151,14 @@ public class Settings {
 		protected List<Serializable> content;
 		@XmlAttribute(name = "name", required = true)
 		protected String name;
+		@XmlAttribute(name = "screenname")
+		protected String screenname;
 		@XmlAttribute(name = "type")
 		protected SettingsType type;
 		@XmlAttribute(name = "value")
 		protected String value;
 		@XmlAttribute(name = "overwritable")
-		protected String overwritable;
+		protected Boolean overwritable;
 
 		/**
 		 * Gets the value of the content property.
@@ -161,8 +178,8 @@ public class Settings {
 		 * <p>
 		 * <p>
 		 * Objects of the following type(s) are allowed in the list
-		 * {@link JAXBElement }{@code <}{@link Settings.Setting.Entry }{@code >}
 		 * {@link String }
+		 * {@link JAXBElement }{@code <}{@link Settings.Setting.Entry }{@code >}
 		 */
 		public List<Serializable> getContent() {
 			if (content == null) {
@@ -189,6 +206,30 @@ public class Settings {
 		 */
 		public void setName(String value) {
 			this.name = value;
+		}
+
+		/**
+		 * Gets the value of the screenname property.
+		 *
+		 * @return possible object is
+		 * {@link String }
+		 */
+		public String getScreenname() {
+			if (screenname == null) {
+				screenname = name.replace("_", " ");
+				screenname = screenname.substring(0, 1).toUpperCase() + screenname.substring(1);
+			}
+			return screenname;
+		}
+
+		/**
+		 * Sets the value of the screenname property.
+		 *
+		 * @param value allowed object is
+		 *              {@link String }
+		 */
+		public void setScreenname(String value) {
+			this.screenname = value;
 		}
 
 		/**
@@ -239,11 +280,11 @@ public class Settings {
 		 * Gets the value of the overwritable property.
 		 *
 		 * @return possible object is
-		 * {@link String }
+		 * {@link Boolean }
 		 */
-		public String getOverwritable() {
+		public boolean isOverwritable() {
 			if (overwritable == null) {
-				return "false";
+				return false;
 			} else {
 				return overwritable;
 			}
@@ -253,9 +294,9 @@ public class Settings {
 		 * Sets the value of the overwritable property.
 		 *
 		 * @param value allowed object is
-		 *              {@link String }
+		 *              {@link Boolean }
 		 */
-		public void setOverwritable(String value) {
+		public void setOverwritable(Boolean value) {
 			this.overwritable = value;
 		}
 

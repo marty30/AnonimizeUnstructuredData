@@ -6,11 +6,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.handling.*;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,7 +38,7 @@ public class DataviewController implements Initializable {
 	private List<DataEntry> data;
 	@FXML
 	private TabPane tabPane;
-	private HashMap<String, Node> additionalOptions;
+	private Settings settings;
 
 	public static HashMap<String, Node> convertAdditionalOptionsToMap(ObservableList<Node> additionalOptions) {
 		HashMap<String, Node> mapAdditionalOptions = new HashMap<>();
@@ -50,13 +54,13 @@ public class DataviewController implements Initializable {
 		int tabnr = 0;
 		int max_tabs = 25;
 		//Detemine some additional things from the options
-		Node bevat_kopteksten = additionalOptions.get("bevat_kopteksten");
-		if (bevat_kopteksten != null && ((CheckBox) bevat_kopteksten).isSelected()) {
+		String bevat_kopteksten = settings.getSettingsMap().get("bevat_kopteksten").getValue();
+		if (bevat_kopteksten != null && Boolean.parseBoolean(bevat_kopteksten)) {
 			//Er zijn kopteksten.
 			PopupManager.info("Er zijn kopteksten!", null, null);
 		}
 		for (DataEntry entry : this.data) {
-			entry.update(determineTechnique().anonymize(entry));
+			entry.update(determineTechnique().anonymize(entry, settings));
 			if (tabnr < max_tabs) {
 				Tab tab = new Tab();
 				//Create title
@@ -99,7 +103,7 @@ public class DataviewController implements Initializable {
 				//Do nothing with the data
 				return new AnonymizationTechnique() {
 					@Override
-					public DataEntry anonymize(DataEntry dataEntry) {
+					public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
 						return dataEntry;
 					}
 				};
@@ -136,7 +140,7 @@ public class DataviewController implements Initializable {
 		}
 	}
 
-	public void setAdditionalOptions(HashMap<String, Node> additionalOptions) {
-		this.additionalOptions = additionalOptions;
+	public void setSettings(Settings settings) {
+		this.settings = settings;
 	}
 }

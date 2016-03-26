@@ -10,6 +10,7 @@ import nl.willemsenmedia.utwente.anonymization.Main;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.io.File;
 import java.net.URL;
@@ -26,6 +27,8 @@ public class HomeController implements Initializable {
 	public Button verwerkBestand;
 	public GridPane additionalOptions;
 	private Tooltip tooltip;
+	private Settings settings;
+	private Control inputElement;
 
 	public HomeController() {
 		tooltip = new Tooltip();
@@ -34,7 +37,7 @@ public class HomeController implements Initializable {
 	public void handleVerwerkBestand(ActionEvent event) {
 		File file = new File(bestandsPad.getText());
 		if (file.exists()) {
-			List<DataEntry> data = FileReader.readFile(file, DataviewController.convertAdditionalOptionsToMap(additionalOptions.getChildrenUnmodifiable()));
+			List<DataEntry> data = FileReader.readFile(file, settings);
 			if (data == null || data.size() == 0) {
 				//Error
 				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
@@ -44,7 +47,7 @@ public class HomeController implements Initializable {
 				// Het bestand is ingelezen
 				DataEntry[] data_array = new DataEntry[data.size()];
 				data_array = data.toArray(data_array);
-				Main.OpenPageWithData(DataviewController.convertAdditionalOptionsToMap(additionalOptions.getChildrenUnmodifiable()), data_array);
+				Main.OpenPageWithData(settings, data_array);
 			}
 		} else {
 			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand " + bestandsPad.getText() + " niet vinden. Probeer het opnieuw.", null);
@@ -60,56 +63,8 @@ public class HomeController implements Initializable {
 
 			// Check if there should be any additional parameters
 			FileType fileType = FileReader.determineFileType(chosenFile);
-			switch (fileType) {
-				case CSV:
-				case XLS:
-				case XLSX:
-					additionalOptions.getChildren().clear();
-					additionalOptions.add(new Label("Bevat kopteksten"), 0, 0);
-					CheckBox bevat_kopteksten = new CheckBox();
-					bevat_kopteksten.setId("bevat_kopteksten");
-					additionalOptions.add(bevat_kopteksten, 1, 0);
-					additionalOptions.add(new Label("Beginrij"), 0, 1);
-					TextField beginrij = new TextField();
-					beginrij.setId("beginrij");
-					additionalOptions.add(beginrij, 1, 1);
-					additionalOptions.add(new Label("Eindrij"), 0, 2);
-					TextField eindrij = new TextField();
-					eindrij.setId("eindrij");
-					additionalOptions.add(eindrij, 1, 2);
-
-					bevat_kopteksten.setOnMouseClicked(event1 -> {
-						if (bevat_kopteksten.isSelected())
-							if (beginrij.getText().equals(""))
-								beginrij.setText("1");
-							else
-								beginrij.setText("" + (Integer.parseInt(beginrij.getText()) + 1));
-						else if (beginrij.getText().equals("1"))
-							beginrij.setText("");
-						else
-							beginrij.setText("" + (Integer.parseInt(beginrij.getText()) - 1));
-					});
-					beginrij.textProperty().addListener((observable, oldValue, newValue) -> {
-						if (!newValue.matches("\\d*")) {
-							beginrij.setText(oldValue);
-						}
-					});
-					eindrij.textProperty().addListener((observable, oldValue, newValue) -> {
-						if (!newValue.matches("\\d*")) {
-							eindrij.setText(oldValue);
-						}
-
-						if (!newValue.equals("") && Integer.parseInt(newValue) < Integer.parseInt(beginrij.getText())) {
-							eindrij.setStyle("-fx-control-inner-background: red");
-						} else {
-							eindrij.setStyle("");
-						}
-					});
-
-					break;
-				default:
-					additionalOptions.getChildren().clear();
-			}
+			GridPane options = createGuiForSettings(fileType);
+			additionalOptions.add(options, 1, 1, 2, 1);
 			additionalOptions.setVisible(additionalOptions.getChildren().size() > 0);
 		}
 	}
@@ -126,5 +81,96 @@ public class HomeController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		tooltip.setText("Klik op \"" + openBestand.getText() + "\" om een bestand te selecteren");
 		bestandsPad.setTooltip(tooltip);
+	}
+
+	private GridPane createGuiForSettings(FileType fileType) {
+		GridPane panel = new GridPane();
+		int row = 0;
+		for (Settings.Setting setting : settings.getSetting()) {
+			if (setting.isOverwritable()) {
+				if ("regexes".equals(setting.getName())) {
+					//The regexes need a different markup then the other settings
+					GridPane regex_panel = new GridPane();
+					//TODO regexes netjes weergeven
+					regex_panel.addRow(0, new Label("TODO"));
+					panel.add(regex_panel, 0, row, 2, 1);
+				} else {
+					inputElement = getInputElement(setting);
+					//TODO voeg instellingsspecifieke dingen toe
+					switch (fileType) {
+						case CSV:
+						case XLS:
+						case XLSX:
+							if ("bevat_kopteksten".equals(setting.getName())) {
+								inputElement.setOnMouseClicked(event1 -> {
+									if (((CheckBox) inputElement).isSelected())
+										if (settings.getSettingsMap().get("beginrij").getValue().equals(""))
+											settings.getSettingsMap().get("beginrij").setValue("1");
+										else
+											settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1));
+									else if (settings.getSettingsMap().get("beginrij").getValue().equals("1"))
+										settings.getSettingsMap().get("beginrij").setValue("");
+									else
+										settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) - 1));
+								});
+							}
+							break;
+						default:
+							additionalOptions.getChildren().clear();
+					}
+					switch (setting.getName()) {
+						case "beginrij":
+							((TextField) inputElement).textProperty().addListener((observable, oldValue, newValue) -> {
+								if (!newValue.matches("\\d*")) {
+									((TextField) inputElement).setText(oldValue);
+								}
+							});
+							break;
+						case "eindrij":
+							((TextField) inputElement).textProperty().addListener((observable, oldValue, newValue) -> {
+								if (!newValue.matches("\\d*")) {
+									((TextField) inputElement).setText(oldValue);
+								}
+
+								if (!newValue.equals("") && Integer.parseInt(newValue) < Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue())) {
+									inputElement.setStyle("-fx-control-inner-background: red");
+								} else {
+									inputElement.setStyle("");
+								}
+							});
+							break;
+					}
+					panel.addRow(row, new Label(setting.getScreenname()), inputElement);
+				}
+				row++;
+			}
+		}
+		return panel;
+	}
+
+	private Control getInputElement(Settings.Setting setting) {
+		switch (setting.getType()) {
+			case JAVA_LANG_BOOLEAN:
+				CheckBox checkBox = new CheckBox();
+				checkBox.setId(setting.getName());
+				checkBox.setSelected(Boolean.parseBoolean(setting.getValue()));
+				checkBox.selectedProperty().addListener((ev) -> {
+					setting.setValue(checkBox.isSelected() + "");
+				});
+				return checkBox;
+			case JAVA_LANG_INTEGER:
+			case JAVA_LANG_STRING:
+			default:
+				TextField textField = new TextField();
+				textField.setId(setting.getName());
+				textField.textProperty().addListener((ev) -> {
+					setting.setValue(textField.getText());
+				});
+				return textField;
+		}
+	}
+
+	public void setSettings(Settings settings) {
+		this.settings = settings;
 	}
 }

@@ -23,9 +23,10 @@
                             </xs:element>
                         </xs:sequence>
                         <xs:attribute type="xs:string" name="name" use="required"/>
+                        <xs:attribute type="xs:string" name="screenname" use="optional"/>
                         <xs:attribute type="settingsType" name="type" use="optional" default="java.lang.Boolean"/>
                         <xs:attribute type="xs:string" name="value" use="optional"/>
-                        <xs:attribute type="xs:string" name="overwritable" use="optional" default="false"/>
+                        <xs:attribute type="xs:boolean" name="overwritable" use="optional" default="false"/>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>
