@@ -138,7 +138,18 @@ public class HomeController implements Initializable {
 					}
 					panel.add(regex_panel, 0, row, 2, 1);
 				} else {
-					panel.addRow(row, new Label(setting.getScreenname()), getInputElement(setting));
+					if (!System.getProperty("technique").equals("SmartHashing")) {
+						switch (setting.getName()) {
+							case "anonimiseer_zelfstandige_naamwoorden":
+							case "anonimiseer_werkwoorden":
+							case "anonimiseer_datums":
+								break;
+							default:
+								panel.addRow(row, new Label(setting.getScreenname()), getInputElement(setting));
+								break;
+						}
+					} else
+						panel.addRow(row, new Label(setting.getScreenname()), getInputElement(setting));
 				}
 				row++;
 			}
