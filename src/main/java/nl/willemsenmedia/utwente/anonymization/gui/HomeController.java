@@ -96,50 +96,7 @@ public class HomeController implements Initializable {
 					panel.add(regex_panel, 0, row, 2, 1);
 				} else {
 					inputElement = getInputElement(setting);
-					//TODO voeg instellingsspecifieke dingen toe
-					switch (fileType) {
-						case CSV:
-						case XLS:
-						case XLSX:
-							if ("bevat_kopteksten".equals(setting.getName())) {
-								inputElement.setOnMouseClicked(event1 -> {
-									if (((CheckBox) inputElement).isSelected())
-										if (settings.getSettingsMap().get("beginrij").getValue().equals(""))
-											settings.getSettingsMap().get("beginrij").setValue("1");
-										else
-											settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1));
-									else if (settings.getSettingsMap().get("beginrij").getValue().equals("1"))
-										settings.getSettingsMap().get("beginrij").setValue("");
-									else
-										settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) - 1));
-								});
-							}
-							break;
-						default:
-							additionalOptions.getChildren().clear();
-					}
-					switch (setting.getName()) {
-						case "beginrij":
-							((TextField) inputElement).textProperty().addListener((observable, oldValue, newValue) -> {
-								if (!newValue.matches("\\d*")) {
-									((TextField) inputElement).setText(oldValue);
-								}
-							});
-							break;
-						case "eindrij":
-							((TextField) inputElement).textProperty().addListener((observable, oldValue, newValue) -> {
-								if (!newValue.matches("\\d*")) {
-									((TextField) inputElement).setText(oldValue);
-								}
 
-								if (!newValue.equals("") && Integer.parseInt(newValue) < Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue())) {
-									inputElement.setStyle("-fx-control-inner-background: red");
-								} else {
-									inputElement.setStyle("");
-								}
-							});
-							break;
-					}
 					panel.addRow(row, new Label(setting.getScreenname()), inputElement);
 				}
 				row++;
@@ -154,18 +111,62 @@ public class HomeController implements Initializable {
 				CheckBox checkBox = new CheckBox();
 				checkBox.setId(setting.getName());
 				checkBox.setSelected(Boolean.parseBoolean(setting.getValue()));
+				setting.addViewUpdater(checkBox.selectedProperty());
 				checkBox.selectedProperty().addListener((ev) -> {
 					setting.setValue(checkBox.isSelected() + "");
 				});
+				switch (setting.getName()) {
+					case "bevat_kopteksten":
+						checkBox.setOnMouseClicked(event1 -> {
+							if (checkBox.isSelected())
+								if (settings.getSettingsMap().get("beginrij").getValue().equals("") || settings.getSettingsMap().get("beginrij").getValue().equals("0"))
+									settings.getSettingsMap().get("beginrij").setValue("1");
+								else
+									settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1));
+							else if (settings.getSettingsMap().get("beginrij").getValue().equals("1"))
+								settings.getSettingsMap().get("beginrij").setValue("0");
+							else
+								settings.getSettingsMap().get("beginrij").setValue("" + (Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) - 1));
+							settings.getSettingsMap().get("beginrij").updateView();
+						});
+						break;
+				}
 				return checkBox;
 			case JAVA_LANG_INTEGER:
 			case JAVA_LANG_STRING:
 			default:
 				TextField textField = new TextField();
 				textField.setId(setting.getName());
-				textField.textProperty().addListener((ev) -> {
-					setting.setValue(textField.getText());
-				});
+				textField.textProperty().setValue(setting.getValue());
+				setting.addViewUpdater(textField.textProperty());
+				switch (setting.getName()) {
+					case "beginrij":
+						textField.textProperty().addListener((observable, oldValue, newValue) -> {
+							if (!newValue.matches("\\d*")) {
+								textField.setText(oldValue);
+							} else
+								setting.setValue(newValue);
+						});
+						break;
+					case "eindrij":
+						textField.textProperty().addListener((observable, oldValue, newValue) -> {
+							if (!newValue.matches("\\d*")) {
+								textField.setText(oldValue);
+							} else
+								setting.setValue(newValue);
+
+							if (!newValue.equals("") && Integer.parseInt(newValue) < Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue())) {
+								textField.setStyle("-fx-control-inner-background: red");
+							} else {
+								textField.setStyle("");
+							}
+						});
+						break;
+					default:
+						textField.textProperty().addListener((ev) -> {
+							setting.setValue(textField.getText());
+						});
+				}
 				return textField;
 		}
 	}

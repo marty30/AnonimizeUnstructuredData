@@ -8,6 +8,10 @@
 
 package nl.willemsenmedia.utwente.anonymization.settings;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
@@ -140,7 +144,7 @@ public class Settings {
 	 * &lt;/complexType>
 	 * </pre>
 	 */
-	@XmlAccessorType(XmlAccessType.FIELD)
+	@XmlAccessorType(XmlAccessType.NONE)
 	@XmlType(name = "", propOrder = {
 			"content"
 	})
@@ -159,6 +163,7 @@ public class Settings {
 		protected String value;
 		@XmlAttribute(name = "overwritable")
 		protected Boolean overwritable;
+		private Property view;
 
 		/**
 		 * Gets the value of the content property.
@@ -276,6 +281,16 @@ public class Settings {
 			this.value = value;
 		}
 
+		public void updateView() {
+			if (view instanceof StringProperty) {
+				((StringProperty) view).setValue(getValue());
+			} else if (view instanceof BooleanProperty) {
+				((BooleanProperty) view).setValue(Boolean.parseBoolean(getValue()));
+			} else {
+				throw new RuntimeException("Unknown type of property: " + view.getClass().getSimpleName());
+			}
+		}
+
 		/**
 		 * Gets the value of the overwritable property.
 		 *
@@ -298,6 +313,10 @@ public class Settings {
 		 */
 		public void setOverwritable(Boolean value) {
 			this.overwritable = value;
+		}
+
+		public void addViewUpdater(Property viewProperty) {
+			this.view = viewProperty;
 		}
 
 

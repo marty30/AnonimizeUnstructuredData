@@ -57,7 +57,6 @@ public class Main extends Application {
 			validator.validate(new StreamSource(settings_file));
 			settings = createSettingsFromFile(settings_file);
 		} catch (IOException | JAXBException | SAXException e1) {
-			PopupManager.error("Het bestand met instellingen is niet valide", "Het bestand met instellingen is niet valide. Gebruikte bestand: " + settings_file.getAbsolutePath(), null, e1);
 			System.err.println("Het bestand met instellingen is niet valide! Gebruikte bestand: " + settings_file.getAbsolutePath());
 			e1.printStackTrace();
 			System.exit(-1);
