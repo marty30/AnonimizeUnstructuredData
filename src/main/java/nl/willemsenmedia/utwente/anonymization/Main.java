@@ -9,6 +9,7 @@ import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
 import nl.willemsenmedia.utwente.anonymization.gui.HomeController;
 import nl.willemsenmedia.utwente.anonymization.gui.PopupManager;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.xml.sax.SAXException;
 
@@ -22,10 +23,12 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class Main extends Application {
 
 	public static Stage mainStage = null;
+	private static Logger log = Logger.getLogger(Main.class.getSimpleName());
 
 	public static void main(String[] args) {
 		if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
@@ -42,7 +45,11 @@ public class Main extends Application {
 			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file");
 			System.exit(-1);
 		} else {
+			log.info("Validate settings");
 			validateSettings(new File(System.getProperty("settings")));
+			log.info("Load wordnet");
+			loadWordnet();
+			log.info("Launch");
 			launch(args);
 		}
 	}
@@ -89,6 +96,16 @@ public class Main extends Application {
 		DataviewController controller = fxmlLoader.getController();
 		controller.setSettings(settings);
 		controller.setData(data);
+	}
+
+	private static void loadWordnet() {
+		new Thread() {
+			@Override
+			public void run() {
+				ODWNReader.getInstance();
+				log.info("Ready loading wordnet");
+			}
+		}.start();
 	}
 
 	@Override
