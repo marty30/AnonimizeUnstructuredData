@@ -6,5 +6,20 @@ package nl.willemsenmedia.utwente.anonymization.data;
  * The possible datatypes for all attributes.
  */
 public enum DataType {
-	UNSTRUCTURED, STRUCTURED, SINGLE_FIELD
+	UNSTRUCTURED("Overig"), DATE("Datum"), NAME("Naam");
+
+	private final String niceName;
+
+	DataType(String niceName) {
+		this.niceName = niceName;
+	}
+
+	public String getName() {
+		return name();
+	}
+
+	@Override
+	public String toString() {
+		return niceName;
+	}
 }

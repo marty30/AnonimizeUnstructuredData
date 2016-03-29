@@ -2,7 +2,6 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
-import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class HashAll extends AnonymizationTechnique {
 	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
-			if (attribute.getDataType().equals(DataType.UNSTRUCTURED)) {
+			if (attribute.doAnonimize()) {
 				String oldData = attribute.getData();
 				String[] words = filterStopwords(oldData).split("\\s+");
 				StringBuilder newData = new StringBuilder();

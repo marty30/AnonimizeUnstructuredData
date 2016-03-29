@@ -28,20 +28,22 @@ public class SmartHashing extends AnonymizationTechnique {
 		determineImportantWords(dataEntry);
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
-			String[] sentences = attribute.getData().split("\\.");
-			StringBuilder newData = new StringBuilder();
-			for (String sentence : sentences) {
-				String[] words = filterStopwords(sentence).split("\\s+");
-				StringBuilder newSentence = new StringBuilder();
-				for (String word : words) {
-					if (isImportantWord(dataEntry, sentence, word))
-						newSentence.append(hash(word)).append(" ");
-					else
-						newSentence.append(word).append(" ");
+			if (attribute.doAnonimize()) {
+				String[] sentences = attribute.getData().split("\\.\\s");
+				StringBuilder newData = new StringBuilder();
+				for (String sentence : sentences) {
+					String[] words = filterStopwords(sentence).split("\\s+");
+					StringBuilder newSentence = new StringBuilder();
+					for (String word : words) {
+						if (isImportantWord(dataEntry, sentence, word))
+							newSentence.append(hash(word)).append(" ");
+						else
+							newSentence.append(word).append(" ");
+					}
+					newData.append(newSentence.toString().trim()).append(".");
 				}
-				newData.append(newSentence.toString().trim()).append(".");
+				attribute.setData(newData.toString());
 			}
-			attribute.setData(newData.toString());
 		}
 		return dataEntry;
 	}

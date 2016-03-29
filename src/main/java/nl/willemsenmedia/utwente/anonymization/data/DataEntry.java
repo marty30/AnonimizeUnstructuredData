@@ -11,10 +11,12 @@ import java.util.List;
  */
 public class DataEntry {
 
+	private List<DataAttribute> headers;
 	private List<DataAttribute> dataAttributes;
 
-	public DataEntry(DataAttribute... dataAttributes) {
+	public DataEntry(List<DataAttribute> headers, DataAttribute... dataAttributes) {
 		this.dataAttributes = new LinkedList<>();
+		this.headers = headers;
 		Collections.addAll(this.dataAttributes, dataAttributes);
 	}
 
@@ -27,6 +29,10 @@ public class DataEntry {
 
 	public List<DataAttribute> getDataAttributes() {
 		return dataAttributes;
+	}
+
+	public List<DataAttribute> getHeaders() {
+		return headers;
 	}
 
 	@Override

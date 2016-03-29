@@ -20,12 +20,14 @@ public class HashSentence extends AnonymizationTechnique {
 	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
-			String[] sentences = filterStopwords(attribute.getData()).split("\\.");
-			StringBuilder newData = new StringBuilder();
-			for (String sentence : sentences) {
-				newData.append(hash(sentence)).append(" ");
+			if (attribute.doAnonimize()) {
+				String[] sentences = filterStopwords(attribute.getData()).split("\\.\\s");
+				StringBuilder newData = new StringBuilder();
+				for (String sentence : sentences) {
+					newData.append(hash(sentence)).append(" ");
+				}
+				attribute.setData(newData.toString());
 			}
-			attribute.setData(newData.toString());
 		}
 		return dataEntry;
 	}
