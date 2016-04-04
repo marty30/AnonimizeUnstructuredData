@@ -56,6 +56,12 @@
             <artifactId>json</artifactId>
             <version>20090211</version>
         </dependency>
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>weka-dev</artifactId>
+            <version>3.7.13</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>

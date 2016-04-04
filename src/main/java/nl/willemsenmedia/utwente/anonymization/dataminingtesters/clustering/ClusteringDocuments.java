@@ -11,7 +11,6 @@
 
 package nl.willemsenmedia.utwente.anonymization.dataminingtesters.clustering;
 
-import nl.willemsenmedia.utwente.anonymization.dataminingtesters.classifier.Protocol;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.clustering.synthetic.ByUrlClusteringAlgorithm;
 import org.carrot2.core.*;
@@ -93,7 +92,7 @@ public class ClusteringDocuments {
 
             /* Prepare Carrot2 documents */
 			final ArrayList<Document> documents = new ArrayList<Document>();
-			File folder = new File(Protocol.LOC_FIRST);
+			File folder = new File("path to dir");
 			String temp;
 			try {
 				for (final File fileEntry : folder.listFiles()) {
