@@ -5,6 +5,7 @@ import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
+import nl.willemsenmedia.utwente.anonymization.gui.PopupManager;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -86,11 +87,11 @@ public class FileReader {
 	private static List<DataEntry> readCSVFile(File file, List<DataAttribute> headers, int beginrij, int eindrij) {
 		List<DataEntry> data = new ArrayList<>();
 		CSVParser parser;
+		CSVRecord csvRecord = null;
 		try {
 			parser = CSVParser.parse(getContentFromFile(file), CSVFormat.EXCEL);
 			Iterator<CSVRecord> iter = parser.iterator();
 			int huidigerij = 0;
-			CSVRecord csvRecord;
 			while (iter.hasNext()) {
 				csvRecord = iter.next();
 				if (huidigerij >= beginrij && (huidigerij <= eindrij || eindrij <= 0)) {
@@ -105,6 +106,8 @@ public class FileReader {
 				}
 				huidigerij++;
 			}
+		} catch (IndexOutOfBoundsException e) {
+			PopupManager.error("Minder header-items dan data-items", null, "Er is een IndexOutOfBoundsException opgetreden wat betekent dat er geen header gevonden kon worden voor het data-item. Een veel voorkomende oorzaak is dat er komma's in de data zit waardoor de csv denkt dat er meer kolommen zijn dan er daadwerkelijk zijn. Probeer het bestand te openen in een spreadsheet programma, bewerk de data zodat het in de juiste kolommen staat en probeer het vervolgens opnieuw met een xls(x) bestand. Het ging om dit record: " + csvRecord, e);
 		} catch (IOException e) {
 			ErrorHandler.handleException(e);
 		}

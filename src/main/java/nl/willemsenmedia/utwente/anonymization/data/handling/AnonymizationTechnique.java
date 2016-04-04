@@ -11,4 +11,8 @@ import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 public abstract class AnonymizationTechnique {
 
 	public abstract DataEntry anonymize(DataEntry dataEntry, Settings settings);
+
+	public DataEntry doPreProcessing(DataEntry dataEntry, Settings settings) {
+		return dataEntry;
+	}
 }
