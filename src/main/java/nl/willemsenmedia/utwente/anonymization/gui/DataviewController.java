@@ -14,15 +14,10 @@ import javafx.scene.layout.HBox;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.handling.*;
+import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -115,29 +110,9 @@ public class DataviewController implements Initializable {
 
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public void exportData(ActionEvent event) {
-		String filename = "export_" + LocalDate.now().toString().trim().replace("\\s+", "_");
-		String ext = ".txt";
-		try {
-			File exportFile = new File(filename + ext);
-			if (!exportFile.exists())
-				exportFile.createNewFile();
-			else
-				filename += "_" + LocalTime.now().toString().trim().replace("\\s+", "_").replace(":", "");
-			exportFile = new File(filename + ext);
-			if (!exportFile.exists())
-				exportFile.createNewFile();
-		} catch (IOException e) {
-			ErrorHandler.handleException(e);
-		}
-		try (PrintWriter out = new PrintWriter(filename + ext)) {
-			for (DataEntry dataEntry : data)
-				out.println(dataEntry.toString());
-			PopupManager.info("Data geëxporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + filename + ext + "\".");
-		} catch (FileNotFoundException e) {
-			ErrorHandler.handleException(e);
-		}
+		FileWriter.exportDataToCSV(data, FileWriter.createFile(".csv"));
+
 	}
 
 	public void setSettings(Settings settings) {
