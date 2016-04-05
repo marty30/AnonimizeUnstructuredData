@@ -1,11 +1,9 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -18,7 +16,10 @@ import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * Created by Martijn on 20-2-2016.
@@ -32,14 +33,6 @@ public class DataviewController implements Initializable {
 	@FXML
 	private TabPane tabPane;
 	private Settings settings;
-
-	public static HashMap<String, Node> convertAdditionalOptionsToMap(ObservableList<Node> additionalOptions) {
-		HashMap<String, Node> mapAdditionalOptions = new HashMap<>();
-		for (Node option : additionalOptions) {
-			mapAdditionalOptions.put(option.getId(), option);
-		}
-		return mapAdditionalOptions;
-	}
 
 	public void setData(DataEntry... data) {
 		this.raw_data = Arrays.asList(data);
