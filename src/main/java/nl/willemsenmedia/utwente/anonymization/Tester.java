@@ -3,7 +3,15 @@ package nl.willemsenmedia.utwente.anonymization;
 //import nl.willemsenmedia.utwente.anonymization.nlp.OpenDutchWordNet;
 //import org.python.core.PyObject;
 
-import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
+import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.handling.AnonymizationTechnique;
+import nl.willemsenmedia.utwente.anonymization.data.handling.HashAll;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
+import org.carrot2.shaded.guava.common.collect.Lists;
+
+import javax.xml.bind.JAXBException;
 
 /**
  * Created by Martijn on 14-3-2016.
@@ -13,7 +21,7 @@ import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
 public class Tester {
 	private static String testdata = "nog een testje";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JAXBException {
 //		DataEntry dataEntry = new DataEntry(new DataAttribute(DataType.UNSTRUCTURED, testdata));
 //
 //		AnonymizationTechnique hashAll = new SmartHashing();
@@ -63,9 +71,12 @@ public class Tester {
 //			e.printStackTrace();
 //		}
 
-		String testdata = "Het gaat goed met Sjariefa. Ze zit op de VVE van de Wiltzangh,gaat daar straks ook naar het BaO.Ouders zijn tevreden. Behalve een verkoudheid is ze nooit ziek.Geen opvoedvragen van ouders.Sjariefa zou heel goed praten,maar zegt hier op CB geen woord! Verder wel ontw. cl,tekent alleen nog geen dichte cirkel. Gewichtscurve stijgt,S. krijgt veel zoete,mn zuiveldrankjes. Uitvoerig besproken,ook nav vraag van P. over het waarom van DM(bij M),en hypertensie bij fam. van P.UItgelegd dat bep. leefregels belangrijk zijn ter preventie.Ouders gaan nu meer water geven ipv Fristi etc.Sj. zit op tafel te spelen maar kijkt bij opdrachtjes schichtig naar P.Zit op haar tong te sabbelen en weigert te praten.M. zegt nog afspr. bij oogarts te hebben po 30-10,Landolt nu even uitgesteld. OOI jan. 2014. SaSt: M. is obv internist,gaat 2-wekelijks naar Zh.Prikt bloedsuikers en spuit 3x per dag insuline. Hefet begeleiding van diabetesverpleegkundige.Conc: Ouders hier beide betrokken,proberen S. te stimuleren,hebben geen hulpvraag.Zeggen: Op de VVE gaat het zo goed, en hier wil ze niet.Lijken geinteresserd in uitleg over de voeding.";
-		for (String word : testdata.split("\\s+")) {
-			System.out.println(word + " wordt " + DataModifier.getStem(word));
-		}
+//		String testdata = "Het gaat goed met Sjariefa. Ze zit op de VVE van de Wiltzangh,gaat daar straks ook naar het BaO.Ouders zijn tevreden. Behalve een verkoudheid is ze nooit ziek.Geen opvoedvragen van ouders.Sjariefa zou heel goed praten,maar zegt hier op CB geen woord! Verder wel ontw. cl,tekent alleen nog geen dichte cirkel. Gewichtscurve stijgt,S. krijgt veel zoete,mn zuiveldrankjes. Uitvoerig besproken,ook nav vraag van P. over het waarom van DM(bij M),en hypertensie bij fam. van P.UItgelegd dat bep. leefregels belangrijk zijn ter preventie.Ouders gaan nu meer water geven ipv Fristi etc.Sj. zit op tafel te spelen maar kijkt bij opdrachtjes schichtig naar P.Zit op haar tong te sabbelen en weigert te praten.M. zegt nog afspr. bij oogarts te hebben po 30-10,Landolt nu even uitgesteld. OOI jan. 2014. SaSt: M. is obv internist,gaat 2-wekelijks naar Zh.Prikt bloedsuikers en spuit 3x per dag insuline. Hefet begeleiding van diabetesverpleegkundige.Conc: Ouders hier beide betrokken,proberen S. te stimuleren,hebben geen hulpvraag.Zeggen: Op de VVE gaat het zo goed, en hier wil ze niet.Lijken geinteresserd in uitleg over de voeding.";
+//		for (String word : testdata.split("\\s+")) {
+//			System.out.println(word + " wordt " + DataModifier.getStem(word));
+//		}
+
+		AnonymizationTechnique technique = new HashAll();
+		System.out.println(technique.doPreProcessing(new DataEntry(Lists.asList(new DataAttribute(DataType.UNSTRUCTURED, "Dit is de header!"), new DataAttribute[]{}), new DataAttribute(DataType.UNSTRUCTURED, "Dit is de tekst, p, *(&^&*hj sdiu!"), new DataAttribute(DataType.UNSTRUCTURED, "Dit is de tekst voor de Tweede keer, p, *(&^&*hj sdiu!")), Settings.getDefault()));
 	}
 }

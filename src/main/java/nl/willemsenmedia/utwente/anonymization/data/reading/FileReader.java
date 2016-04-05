@@ -40,14 +40,24 @@ public class FileReader {
 					case XLSX:
 						if (bevatKopteksten)
 							headers = readExcelHeaders(chosenFile);
-						else
-							headers = new ArrayList<>(readExcelHeaders(chosenFile).size());
+						else {
+							int tmp_headers = readExcelHeaders(chosenFile).size();
+							headers = new ArrayList<>(tmp_headers);
+							for (int i = 0; i < tmp_headers; i++) {
+								headers.add(new DataAttribute(DataType.UNSTRUCTURED, ""));
+							}
+						}
 						return readExcelFile(chosenFile, headers, beginrij, eindrij);
 					case CSV:
 						if (bevatKopteksten)
 							headers = readCSVHeaders(chosenFile);
-						else
-							headers = new ArrayList<>(readCSVHeaders(chosenFile).size());
+						else {
+							int tmp_headers = readCSVHeaders(chosenFile).size();
+							headers = new ArrayList<>(tmp_headers);
+							for (int i = 0; i < tmp_headers; i++) {
+								headers.add(new DataAttribute(DataType.UNSTRUCTURED, ""));
+							}
+						}
 						return readCSVFile(chosenFile, headers, beginrij, eindrij);
 					case XML:
 						return readXMLFile(chosenFile);

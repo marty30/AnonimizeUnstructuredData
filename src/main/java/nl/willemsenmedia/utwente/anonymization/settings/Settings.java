@@ -11,9 +11,12 @@ package nl.willemsenmedia.utwente.anonymization.settings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
+import nl.willemsenmedia.utwente.anonymization.Main;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,6 +77,10 @@ public class Settings {
 	protected List<Settings.Setting> setting;
 	protected Map<String, Setting> map;
 
+	public static Settings getDefault() throws JAXBException {
+		return Main.createSettingsFromFile(new File(Settings.class.getClassLoader().getResource("default_settings.xml").getFile()));
+	}
+
 	/**
 	 * Gets the value of the setting property.
 	 * <p>
@@ -110,7 +117,6 @@ public class Settings {
 		}
 		return this.map;
 	}
-
 
 	/**
 	 * <p>Java class for anonymous complex type.

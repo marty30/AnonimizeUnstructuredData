@@ -31,6 +31,9 @@ public class Main extends Application {
 	private static Logger log = Logger.getLogger(Main.class.getSimpleName());
 
 	public static void main(String[] args) {
+		//Set language (for wordnet and stopwords etc.)
+//		System.setProperty("lang", "en");
+		System.setProperty("lang", "nl");
 		if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
 			System.setProperty("settings", Main.class.getClassLoader().getResource("default_settings.xml").getFile());
 		}
@@ -79,7 +82,7 @@ public class Main extends Application {
 
 	}
 
-	private static Settings createSettingsFromFile(File file) throws JAXBException {
+	public static Settings createSettingsFromFile(File file) throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(Settings.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		return (Settings) jaxbUnmarshaller.unmarshal(file);

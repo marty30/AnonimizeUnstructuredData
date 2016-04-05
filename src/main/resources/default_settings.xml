@@ -9,9 +9,10 @@
     <!--Pre processing options-->
     <setting name="verwijder_lidwoorden" type="java.lang.Boolean" value="true" overwritable="false"/>
     <setting name="verwijder_voorzetsels" type="java.lang.Boolean" value="true" overwritable="false"/>
-    <setting name="maak_alle_woorden_lowercase" type="java.lang.Boolean" value="true" overwritable="true"/>
+    <setting name="maak_alle_woorden_lowercase" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="maak_beginwoorden_lowercase" type="java.lang.Boolean" value="true" overwritable="true"/>
     <setting name="verwijder_leestekens" type="java.lang.Boolean" value="true" overwritable="false"/>
+    <entry regex_search="[^\w\s]" regex_replace="" comment="Verwijder leestekens"/>
     <setting name="verwijder_datums" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="regexes" screenname="RegEx-en die uitgevoerd moeten worden als deel van het pre-processing"
              type="java.util.Map" overwritable="true">

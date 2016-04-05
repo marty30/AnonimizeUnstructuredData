@@ -11,15 +11,18 @@
 
 package nl.willemsenmedia.utwente.anonymization.dataminingtesters.clustering;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
+import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.clustering.synthetic.ByUrlClusteringAlgorithm;
 import org.carrot2.core.*;
 
+import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * This example shows how to cluster a set of documents available as an {@link ArrayList}.
@@ -29,7 +32,7 @@ import java.util.Scanner;
  * that e.g., the {@link Controller} can cache its results, if needed.
  */
 public class ClusteringDocuments {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JAXBException {
 		/* [[[start:clustering-document-list-intro]]]
 		 *
          * <div>
@@ -92,35 +95,46 @@ public class ClusteringDocuments {
 
             /* Prepare Carrot2 documents */
 			final ArrayList<Document> documents = new ArrayList<Document>();
-			File folder = new File("path to dir");
-			String temp;
-			try {
-				for (final File fileEntry : folder.listFiles()) {
-					if (fileEntry.isDirectory()) {
-						// Do nothing with directories!
-						continue;
-					} else {
-						if (fileEntry.isFile()) {
-							temp = fileEntry.getName();
-							if ((temp.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase()).equals("txt")) {
-
-			        	  /* Lees het specifieke bestand in */
-								Scanner sc = new Scanner(fileEntry.toPath());
-								String text = "";
-								while (sc.hasNext()) text += sc.nextLine() + "\n";
-								sc.close();
-								documents.add(new Document(temp, text));
-							}
-						}
-					}
-				}
-			} catch (IOException e) {
-
-			}
-
+//			File folder = new File("path to dir");
+//			String temp;
+//			try {
+//				for (final File fileEntry : folder.listFiles()) {
+//					if (fileEntry.isDirectory()) {
+//						// Do nothing with directories!
+//						continue;
+//					} else {
+//						if (fileEntry.isFile()) {
+//							temp = fileEntry.getName();
+//							if ((temp.substring(temp.lastIndexOf('.') + 1, temp.length()).toLowerCase()).equals("txt")) {
+//
+//			        	  /* Lees het specifieke bestand in */
+//								Scanner sc = new Scanner(fileEntry.toPath());
+//								String text = "";
+//								while (sc.hasNext()) text += sc.nextLine() + "\n";
+//								sc.close();
+//								documents.add(new Document(temp, text));
+//							}
+//						}
+//					}
+//				}
+//			} catch (IOException e) {
+//
+//			}
 //								for (String[] row : new File(Protocol.LOC_FIRST).listFiles()) {
 //				documents.add(new Document(row[1], row[2], row[0]));
 //			}
+
+
+
+//			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), Settings.getDefault());
+			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\export_2016-04-04_163842.684.csv"), Settings.getDefault());
+			for (DataEntry dataEntry: dataEntries){
+				StringBuilder content = new StringBuilder();
+				for (DataAttribute atrr : dataEntry.getDataAttributes()) {
+					content.append(atrr.getData());
+				}
+				documents.add(new Document(dataEntry.getHeaders().get(0).getData(), content.toString()));
+			}
 
             /* A controller to manage the processing pipeline. */
 			final Controller controller = ControllerFactory.createSimple();

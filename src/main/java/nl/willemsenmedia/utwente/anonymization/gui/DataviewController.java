@@ -48,13 +48,8 @@ public class DataviewController implements Initializable {
 		tabPane.getTabs().clear();
 		int tabnr = 0;
 		int max_tabs = 25;
-		//Detemine some additional things from the options
-		String bevat_kopteksten = settings.getSettingsMap().get("bevat_kopteksten").getValue();
-		if (bevat_kopteksten != null && Boolean.parseBoolean(bevat_kopteksten)) {
-			//Er zijn kopteksten.
-			PopupManager.info("Er zijn kopteksten!", null, null);
-		}
 		for (DataEntry entry : this.data) {
+			determineTechnique().doPreProcessing(entry, settings);
 			entry.update(determineTechnique().anonymize(entry, settings));
 			if (tabnr < max_tabs) {
 				Tab tab = new Tab();
