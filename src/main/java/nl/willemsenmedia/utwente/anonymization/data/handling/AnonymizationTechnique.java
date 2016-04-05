@@ -35,6 +35,15 @@ public abstract class AnonymizationTechnique {
 		return text;
 	}
 
+	/**
+	 * This method really anonimizes the data. It is given a data-entry and a settings class to determine how to attack certain problems that are specified by the user.
+	 *
+	 * @param dataEntry the data
+	 * @param settings  the settings
+	 * @return a NEW data object
+	 */
+	//@requires dataEntry != null && dataEntry.getDataAttributes() != null && dataEntry.getDataAttributes().size() > 0
+	//@ensures return != null && return.getDataAttributes() != null && return.getDataAttributes().size() > 0
 	public abstract DataEntry anonymize(DataEntry dataEntry, Settings settings);
 
 	/**
@@ -95,7 +104,7 @@ public abstract class AnonymizationTechnique {
 				String[] tagged_tokens = OpenNLPFactory.getPOSTagger().tag(tokens);
 				for (int i = 0; i < tagged_tokens.length; i++) {
 					if (tagged_tokens[i].equals("Prep") || (settings.getSettingsMap().get("verwijder_datums").getValue().equals("true") && NLPHelper.isDate(tokens[i]))) {
-						attr.setData(attr.getData().replace(tokens[i]+" ", ""));
+						attr.setData(attr.getData().replace(tokens[i] + " ", ""));
 					}
 
 				}

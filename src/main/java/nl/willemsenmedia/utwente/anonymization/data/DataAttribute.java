@@ -6,7 +6,7 @@ package nl.willemsenmedia.utwente.anonymization.data;
  * All data attributes. An attribute contains a type and the real data.
  * Each field in a form would correspond to a DataAttribute.
  */
-public class DataAttribute {
+public class DataAttribute implements Cloneable {
 	private DataType dataType;
 	private String data;
 	private String name;
@@ -45,5 +45,10 @@ public class DataAttribute {
 			return name + ": " + data + " (" + dataType.toString() + ")";
 		else
 			return dataType.toString() + ": " + data;
+	}
+
+	@Override
+	public DataAttribute clone() {
+		return new DataAttribute(this.getDataType(), this.name, this.getData(), this.doAnonimize);
 	}
 }

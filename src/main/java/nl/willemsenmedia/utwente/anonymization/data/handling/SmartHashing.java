@@ -4,12 +4,12 @@ import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.nlp_java.NLPHelper;
 import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
+import nl.willemsenmedia.utwente.anonymization.nlp_java.OpenNLPFactory;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.filterStopwords;
 import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
 
 /**
@@ -24,14 +24,16 @@ public class SmartHashing extends AnonymizationTechnique {
 	@Override
 	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
 		this.settings = settings;
+		DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
 		determineImportantWords(dataEntry);
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
+			DataAttribute newDataAttribute = attribute.clone();
 			if (attribute.doAnonimize()) {
 				String[] sentences = attribute.getData().split("\\.\\s");
 				StringBuilder newData = new StringBuilder();
 				for (String sentence : sentences) {
-					String[] words = filterStopwords(sentence).split("\\s+");
+					String[] words = OpenNLPFactory.getTokenizer().tokenize(sentence);
 					StringBuilder newSentence = new StringBuilder();
 					for (String word : words) {
 						if (isImportantWord(dataEntry, sentence, word))
@@ -41,10 +43,12 @@ public class SmartHashing extends AnonymizationTechnique {
 					}
 					newData.append(newSentence.toString().trim()).append(".");
 				}
-				attribute.setData(newData.toString());
+				newDataAttribute.setData(newData.toString());
 			}
+			newDataEntry.addDataAttribute(newDataAttribute);
+
 		}
-		return dataEntry;
+		return newDataEntry;
 	}
 
 	private void determineImportantWords(DataEntry dataEntry) {

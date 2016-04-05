@@ -49,8 +49,8 @@ public class ARFFCSVConverter {
 //	}
 
 	public static void main(String[] args) throws IOException {
-		File in = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\export_2016-04-04_163842.684.csv");
-		File out = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.arff");
+		File in = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\export_2016-04-05.csv");
+		File out = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous2.arff");
 		if (!out.exists())
 			out.createNewFile();
 		convertCsvToArff(in, out);

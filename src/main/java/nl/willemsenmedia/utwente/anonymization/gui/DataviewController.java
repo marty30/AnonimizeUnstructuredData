@@ -18,10 +18,7 @@ import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Created by Martijn on 20-2-2016.
@@ -30,7 +27,8 @@ import java.util.ResourceBundle;
  */
 public class DataviewController implements Initializable {
 	private static final String AttributeSeparator = "--------------------------";
-	private List<DataEntry> data;
+	private List<DataEntry> raw_data;
+	private List<DataEntry> anonimous_data;
 	@FXML
 	private TabPane tabPane;
 	private Settings settings;
@@ -44,24 +42,26 @@ public class DataviewController implements Initializable {
 	}
 
 	public void setData(DataEntry... data) {
-		this.data = Arrays.asList(data);
+		this.raw_data = Arrays.asList(data);
+		this.anonimous_data = new ArrayList<>();
 		tabPane.getTabs().clear();
 		int tabnr = 0;
 		int max_tabs = 25;
-		for (DataEntry entry : this.data) {
-			determineTechnique().doPreProcessing(entry, settings);
-			entry.update(determineTechnique().anonymize(entry, settings));
+		for (DataEntry raw_entry : this.raw_data) {
+			determineTechnique().doPreProcessing(raw_entry, settings);
+			DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
+			anonimous_data.add(anonimous_entry);
 			if (tabnr < max_tabs) {
 				Tab tab = new Tab();
 				//Create title
-				String title = entry.getDataAttributes().get(0).getData();
+				String title = anonimous_entry.getDataAttributes().get(0).getData();
 				if (title.length() > 15)
 					title = title.substring(0, 15) + "...";
 				tab.setText("Data: " + title);
 
 				HBox hbox = new HBox();
 				String content = "";
-				for (DataAttribute attribute : entry.getDataAttributes()) {
+				for (DataAttribute attribute : anonimous_entry.getDataAttributes()) {
 					content += attribute.getData() + "\n" + AttributeSeparator + "\n";
 				}
 				hbox.getChildren().add(new Label(content.trim()));
@@ -90,11 +90,13 @@ public class DataviewController implements Initializable {
 			case "k-anonymity":
 				return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
 			default:
-				//Do nothing with the data
+				//Do nothing with the raw_data
 				return new AnonymizationTechnique() {
 					@Override
 					public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
-						return dataEntry;
+						DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
+						dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
+						return newDataEntry;
 					}
 				};
 		}
@@ -106,7 +108,7 @@ public class DataviewController implements Initializable {
 	}
 
 	public void exportData(ActionEvent event) {
-		FileWriter.exportDataToCSV(data, FileWriter.createFile(".csv"));
+		FileWriter.exportDataToCSV(raw_data, FileWriter.createFile(".csv"));
 
 	}
 
