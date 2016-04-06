@@ -1,5 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
+import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -7,6 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import nl.willemsenmedia.utwente.anonymization.Main;
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
@@ -15,6 +17,7 @@ import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -31,6 +34,7 @@ public class HomeController implements Initializable {
 	private Tooltip tooltip;
 	private Settings settings;
 	private String errors_settings;
+	private ArrayList<DataAttribute> headerList;
 
 	public HomeController() {
 		tooltip = new Tooltip();
@@ -39,7 +43,7 @@ public class HomeController implements Initializable {
 	public void handleVerwerkBestand(ActionEvent event) {
 		File file = new File(bestandsPad.getText());
 		if (file.exists()) {
-			List<DataEntry> data = FileReader.readFile(file, settings);
+			List<DataEntry> data = FileReader.readFile(file, settings, headerList);
 			if (data == null || data.size() == 0) {
 				//Error
 				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
@@ -87,7 +91,10 @@ public class HomeController implements Initializable {
 			// Check if there should be any additional parameters
 			FileType fileType = FileReader.determineFileType(chosenFile);
 			GridPane options = createGuiForSettings(fileType);
-			additionalOptions.add(options, 1, 1, 2, 1);
+			headerList = new ArrayList<>();
+//			GridPane headers = getHeaders(fileType, chosenFile, headerList);
+//			additionalOptions.add(headers, 1, 1, 2, 1);
+			additionalOptions.add(options, 1, 2, 2, 1);
 			additionalOptions.setVisible(additionalOptions.getChildren().size() > 0);
 		}
 	}
@@ -264,6 +271,36 @@ public class HomeController implements Initializable {
 				}
 				return textField;
 		}
+	}
+
+	private GridPane getHeaders(FileType fileType, File file, List<DataAttribute> attributeList) {
+		GridPane pane = new GridPane();
+		pane.add(new Label("Kolom"), 0, 0);
+		pane.add(new Label("Annonimiseer deze kolom?"), 1, 0);
+		if (fileType.equals(FileType.CSV)) {
+			attributeList.clear();
+			attributeList.addAll(FileReader.readCSVHeaders(file));
+		} else if (fileType.equals(FileType.XLS) || fileType.equals(FileType.XLSX)) {
+			attributeList.clear();
+			attributeList.addAll(FileReader.readExcelHeaders(file));
+		}
+
+		//
+		for (int i = 0; attributeList != null && i < attributeList.size(); i++) {
+			DataAttribute attribute = attributeList.get(i);
+			Label label = new Label(attribute.getData());
+			pane.add(label, 0, i + 1);
+			ComboBox<String> choicebox = new ComboBox<>();
+			choicebox.getItems().addAll("Ja", "Nee");
+			choicebox.getProperties().addListener(new MapChangeListener<Object, Object>() {
+				@Override
+				public void onChanged(Change<?, ?> change) {
+					attribute.setDoAnonimize(!"Nee".equals(choicebox.getValue()));
+				}
+			});
+			pane.add(choicebox, 1, i + 1);
+		}
+		return pane;
 	}
 
 	public void setSettings(Settings settings) {

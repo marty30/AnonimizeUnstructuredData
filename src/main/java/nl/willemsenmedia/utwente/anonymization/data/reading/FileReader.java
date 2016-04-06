@@ -27,7 +27,7 @@ import java.util.List;
  * The helper class that can read the supported file types and change them into data entries.
  */
 public class FileReader {
-	public static List<DataEntry> readFile(File chosenFile, Settings settings) {
+	public static List<DataEntry> readFile(File chosenFile, Settings settings, ArrayList<DataAttribute> headerList) {
 		if (chosenFile.isFile() && chosenFile.exists()) {
 			FileType fileType = determineFileType(chosenFile);
 			int beginrij = Integer.parseInt(settings.getSettingsMap().get("beginrij") == null ? "0" : settings.getSettingsMap().get("beginrij").getValue());
@@ -38,8 +38,10 @@ public class FileReader {
 				switch (fileType) {
 					case XLS:
 					case XLSX:
-						if (bevatKopteksten)
+						if (bevatKopteksten && headerList == null)
 							headers = readExcelHeaders(chosenFile);
+						else if (bevatKopteksten)
+							headers = headerList;
 						else {
 							int tmp_headers = readExcelHeaders(chosenFile).size();
 							headers = new ArrayList<>(tmp_headers);
@@ -49,8 +51,10 @@ public class FileReader {
 						}
 						return readExcelFile(chosenFile, headers, beginrij, eindrij);
 					case CSV:
-						if (bevatKopteksten)
+						if (bevatKopteksten && headerList == null)
 							headers = readCSVHeaders(chosenFile);
+						else if (bevatKopteksten)
+							headers = headerList;
 						else {
 							int tmp_headers = readCSVHeaders(chosenFile).size();
 							headers = new ArrayList<>(tmp_headers);
@@ -68,7 +72,7 @@ public class FileReader {
 			}
 		} else if (chosenFile.isDirectory()) {
 			System.err.println(chosenFile.getAbsolutePath() + " is a directory. You should have used DirReader.readDir() instead of read file.");
-			return DirReader.readDir(chosenFile, settings);
+			return DirReader.readDir(chosenFile, settings, headerList);
 		}
 		System.err.println("Could not handle the following file: " + chosenFile.getAbsolutePath());
 		return null;
@@ -90,8 +94,8 @@ public class FileReader {
 			return headers;
 		} catch (IOException e) {
 			ErrorHandler.handleException(e);
-			return null;
 		}
+		return new LinkedList<>();
 	}
 
 	private static List<DataEntry> readCSVFile(File file, List<DataAttribute> headers, int beginrij, int eindrij) {
@@ -175,8 +179,8 @@ public class FileReader {
 			return headers;
 		} catch (IOException | InvalidFormatException e) {
 			ErrorHandler.handleException(e);
-			return null;
 		}
+		return new LinkedList<>();
 	}
 
 	private static List<DataEntry> readExcelFile(File file, List<DataAttribute> headers, int beginrij, int eindrij) {

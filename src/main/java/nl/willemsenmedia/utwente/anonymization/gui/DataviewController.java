@@ -33,38 +33,46 @@ public class DataviewController implements Initializable {
 	@FXML
 	private TabPane tabPane;
 	private Settings settings;
+	private int tabnr;
+	private int max_tabs;
 
 	public void setData(DataEntry... data) {
 		this.raw_data = Arrays.asList(data);
 		this.anonimous_data = new ArrayList<>();
 		tabPane.getTabs().clear();
-		int tabnr = 0;
-		int max_tabs = 25;
+		tabnr = 0;
+		max_tabs = 25;
 		for (DataEntry raw_entry : this.raw_data) {
 			determineTechnique().doPreProcessing(raw_entry, settings);
 			DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
 			anonimous_data.add(anonimous_entry);
-			if (tabnr < max_tabs) {
-				Tab tab = new Tab();
-				//Create title
-				String title = anonimous_entry.getDataAttributes().get(0).getData();
-				if (title.length() > 15)
-					title = title.substring(0, 15) + "...";
-				tab.setText("Data: " + title);
-
-				HBox hbox = new HBox();
-				String content = "";
-				for (DataAttribute attribute : anonimous_entry.getDataAttributes()) {
-					content += attribute.getData() + "\n" + AttributeSeparator + "\n";
-				}
-				hbox.getChildren().add(new Label(content.trim()));
-				hbox.setAlignment(Pos.TOP_LEFT);
-				ScrollPane sp = new ScrollPane();
-				sp.setContent(hbox);
-				tab.setContent(sp);
-				tabPane.getTabs().add(tab);
-				tabnr++;
+			if (System.getProperty("useGUI").equals("true")) {
+				makeGUI(raw_entry, anonimous_entry);
 			}
+		}
+	}
+
+	public void makeGUI(DataEntry raw_entry, DataEntry anonimous_entry) {
+		if (tabnr < max_tabs) {
+			Tab tab = new Tab();
+			//Create title
+			String title = anonimous_entry.getDataAttributes().get(0).getData();
+			if (title.length() > 15)
+				title = title.substring(0, 15) + "...";
+			tab.setText("Data: " + title);
+
+			HBox hbox = new HBox();
+			String content = "";
+			for (DataAttribute attribute : anonimous_entry.getDataAttributes()) {
+				content += attribute.getData() + "\n" + AttributeSeparator + "\n";
+			}
+			hbox.getChildren().add(new Label(content.trim()));
+			hbox.setAlignment(Pos.TOP_LEFT);
+			ScrollPane sp = new ScrollPane();
+			sp.setContent(hbox);
+			tab.setContent(sp);
+			tabPane.getTabs().add(tab);
+			tabnr++;
 		}
 	}
 
@@ -101,7 +109,7 @@ public class DataviewController implements Initializable {
 	}
 
 	public void exportData(ActionEvent event) {
-		FileWriter.exportDataToCSV(raw_data, FileWriter.createFile(".csv"));
+		FileWriter.exportDataToCSV(anonimous_data, FileWriter.createFile(".csv"));
 
 	}
 

@@ -2,9 +2,9 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.NLPHelper;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.OpenNLPFactory;
+import nl.willemsenmedia.utwente.anonymization.nlp.NLPHelper;
+import nl.willemsenmedia.utwente.anonymization.nlp.ODWNReader;
+import nl.willemsenmedia.utwente.anonymization.nlp.OpenNLPFactory;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.ArrayList;

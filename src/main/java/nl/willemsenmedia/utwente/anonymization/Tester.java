@@ -3,6 +3,8 @@ package nl.willemsenmedia.utwente.anonymization;
 //import nl.willemsenmedia.utwente.anonymization.nlp.OpenDutchWordNet;
 //import org.python.core.PyObject;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
+
 import javax.xml.bind.JAXBException;
 
 /**
@@ -72,5 +74,6 @@ public class Tester {
 //		System.out.println(technique.doPreProcessing(new DataEntry(Lists.asList(new DataAttribute(DataType.UNSTRUCTURED, "Dit is de header!"), new DataAttribute[]{}), new DataAttribute(DataType.UNSTRUCTURED, "Dit is de tekst, p, *(&^&*hj sdiu!"), new DataAttribute(DataType.UNSTRUCTURED, "Dit is de tekst voor de Tweede keer, p, *(&^&*hj sdiu!")), Settings.getDefault()));
 //		System.out.println(DataModifier.bin2base64("testje".getBytes()));
 //		System.out.println(DataModifier.bin2hex("testje".getBytes()));
+		System.out.println(DataModifier.getStem("opgetogen"));
 	}
 }

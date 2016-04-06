@@ -39,8 +39,9 @@ public class WekaNaiveBayesStart {
 
 	public static void main(String[] args) throws Exception {
 		//get file
-//		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\datasets\\SFU_Review_Corpus.arff";
-		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous2.arff";
+		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\datasets\\SFU_Review_Corpus.arff";
+//		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous2.arff";
+//		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_preprocessed.arff";
 		// read file
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
 		Instances instances = new Instances(bufferedReader);
@@ -51,7 +52,7 @@ public class WekaNaiveBayesStart {
 		NaiveBayesMultinomialText naiveBayes = new NaiveBayesMultinomialText();
 		naiveBayes.buildClassifier(instances);
 		Evaluation eval = new Evaluation(instances);
-		eval.crossValidateModel(naiveBayes, instances, 10, new Debug.Random(1));
+		eval.crossValidateModel(naiveBayes, instances, 4, new Debug.Random(1));
 		System.out.println(eval.toSummaryString("\nResults\n=====\n", true));
 		System.out.println("F measure:"+eval.fMeasure(1) + " Precision: " + eval.precision(1));
 		System.out.println(eval.toMatrixString());
@@ -61,7 +62,7 @@ public class WekaNaiveBayesStart {
 		Instances[] traintest = splitDataset(loader.getDataSet(), 75);
 		WekaNaiveBayesStart clasif = new WekaNaiveBayesStart(traintest[0]);
 		weka.classifiers.evaluation.Evaluation evalu = clasif.test(traintest[1]);
-		evalu.toMatrixString();
+		System.out.println(evalu.toMatrixString());
 	}
 
 	public static Instances[] splitDataset(Instances inst, int percent) {

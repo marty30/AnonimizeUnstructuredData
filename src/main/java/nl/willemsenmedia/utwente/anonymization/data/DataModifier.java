@@ -19,7 +19,8 @@ import java.util.Base64;
 public class DataModifier {
 	//TODO Deze salt ergens verbergen voor privacy.
 	private static final String SALT = "aasfbasf oaf if afbui aufi ba ufiabfoiasf ";
-	private static SnowballStemmer stemmer;
+	private static SnowballStemmer nl_stemmer;
+	private static SnowballStemmer en_stemmer;
 
 	public static String hash(String unhashedString) {
 		MessageDigest digest;
@@ -47,8 +48,17 @@ public class DataModifier {
 	}
 
 	public static String getStem(String word) {
-		if (stemmer == null) {
-			stemmer = new dutchStemmer();
+		SnowballStemmer stemmer;
+		if ("en".equals(System.getProperty("lang"))) {
+			if (en_stemmer == null) {
+				en_stemmer = new dutchStemmer();
+			}
+			stemmer = en_stemmer;
+		} else {
+			if (nl_stemmer == null) {
+				nl_stemmer = new dutchStemmer();
+			}
+			stemmer = nl_stemmer;
 		}
 		stemmer.setCurrent(word);
 		boolean stemmingWorked = stemmer.stem();

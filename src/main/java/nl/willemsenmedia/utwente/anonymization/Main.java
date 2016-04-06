@@ -7,9 +7,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
+import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 import nl.willemsenmedia.utwente.anonymization.gui.HomeController;
-import nl.willemsenmedia.utwente.anonymization.gui.PopupManager;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.ODWNReader;
+import nl.willemsenmedia.utwente.anonymization.nlp.ODWNReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.xml.sax.SAXException;
 
@@ -32,20 +32,23 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		//Set language (for wordnet and stopwords etc.)
-//		System.setProperty("lang", "en");
-		System.setProperty("lang", "nl");
+		System.setProperty("lang", "en");
+//		System.setProperty("lang", "nl");
+		if (System.getProperty("useGUI") == null || System.getProperty("useGUI").equals("") || System.getProperty("useGUI").equals("true")) {
+			System.setProperty("useGUI", "true");
+		}
 		if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
 			System.setProperty("settings", Main.class.getClassLoader().getResource("default_settings.xml").getFile());
 		}
 		if (System.getProperty("technique") == null) {
 			System.err.println("Er moet een techniek bepaald zijn, anders werkt de applicatie niet!");
 			System.err.println();
-			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file");
+			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
 			System.exit(-1);
 		} else if (System.getProperty("settings") != null && (!System.getProperty("settings").endsWith(".xml") || !new File(System.getProperty("settings")).exists())) {
 			System.err.println("De settings moeten van een xml-bestand komen en het lijkt erop dat deze niet goed is gedefinieerd. Dit is gespecificeerd: " + System.getProperty("settings"));
 			System.err.println();
-			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file");
+			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
 			System.exit(-1);
 		} else {
 			log.info("Validate settings");
@@ -53,7 +56,12 @@ public class Main extends Application {
 			log.info("Load wordnet");
 			loadWordnet();
 			log.info("Launch");
-			launch(args);
+			if (System.getProperty("useGUI").equals("false")) {
+				System.err.println("Not yet supported!");
+				System.exit(-1);
+			} else {
+				launch(args);
+			}
 		}
 	}
 
@@ -94,7 +102,7 @@ public class Main extends Application {
 			Parent root = fxmlLoader.load();
 			mainStage.setScene(new Scene(root, 1024, 768));
 		} catch (IOException e) {
-			PopupManager.error(null, null, null, e);
+			ErrorHandler.handleException(e);
 		}
 		DataviewController controller = fxmlLoader.getController();
 		controller.setSettings(settings);

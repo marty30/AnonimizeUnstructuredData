@@ -2,8 +2,9 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.NLPHelper;
-import nl.willemsenmedia.utwente.anonymization.nlp_java.OpenNLPFactory;
+import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
+import nl.willemsenmedia.utwente.anonymization.nlp.NLPHelper;
+import nl.willemsenmedia.utwente.anonymization.nlp.OpenNLPFactory;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import javax.xml.bind.JAXBElement;
@@ -97,10 +98,9 @@ public abstract class AnonymizationTechnique {
 					return text.replace(matcher.group(), matcher.group().toLowerCase());
 				}));
 			}
-			//Now remove any prepositions
-			//And dates
+			//Now remove any prepositios and dates
+			String[] tokens = OpenNLPFactory.getTokenizer().tokenize(attr.getData());
 			if (settings.getSettingsMap().get("verwijder_voorzetsels").getValue().equals("true") || settings.getSettingsMap().get("verwijder_datums").getValue().equals("true")) {
-				String[] tokens = OpenNLPFactory.getTokenizer().tokenize(attr.getData());
 				String[] tagged_tokens = OpenNLPFactory.getPOSTagger().tag(tokens);
 				for (int i = 0; i < tagged_tokens.length; i++) {
 					if (tagged_tokens[i].equals("Prep") || (settings.getSettingsMap().get("verwijder_datums").getValue().equals("true") && NLPHelper.isDate(tokens[i]))) {
@@ -108,6 +108,10 @@ public abstract class AnonymizationTechnique {
 					}
 
 				}
+			}
+			//Finally stem the whole thing
+			for (String token : tokens) {
+				attr.setData(attr.getData().replace(token, DataModifier.getStem(token)));
 			}
 		}
 		return dataEntry;

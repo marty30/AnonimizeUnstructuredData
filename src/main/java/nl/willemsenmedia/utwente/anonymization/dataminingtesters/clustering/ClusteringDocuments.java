@@ -126,8 +126,8 @@ public class ClusteringDocuments {
 
 
 
-//			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), Settings.getDefault());
-			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\export_2016-04-04_163842.684.csv"), Settings.getDefault());
+//			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), Settings.getDefault(), null);
+			List<DataEntry> dataEntries = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\export_2016-04-04_163842.684.csv"), Settings.getDefault(), null);
 			for (DataEntry dataEntry: dataEntries){
 				StringBuilder content = new StringBuilder();
 				for (DataAttribute atrr : dataEntry.getDataAttributes()) {

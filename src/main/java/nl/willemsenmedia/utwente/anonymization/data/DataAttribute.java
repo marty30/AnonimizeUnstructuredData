@@ -19,7 +19,7 @@ public class DataAttribute implements Cloneable {
 	public DataAttribute(DataType dataType, String name, String data, boolean doAnonimize) {
 		this.dataType = dataType;
 		this.name = name;
-		this.data = data;
+		this.data = data.trim();
 		this.doAnonimize = doAnonimize;
 	}
 
@@ -32,11 +32,15 @@ public class DataAttribute implements Cloneable {
 	}
 
 	public void setData(String data) {
-		this.data = data;
+		this.data = data.trim();
 	}
 
 	public boolean doAnonimize() {
 		return doAnonimize;
+	}
+
+	public void setDoAnonimize(boolean val) {
+		doAnonimize = val;
 	}
 
 	@Override
