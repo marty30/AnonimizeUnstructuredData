@@ -11,10 +11,11 @@ package nl.willemsenmedia.utwente.anonymization.settings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
-import nl.willemsenmedia.utwente.anonymization.Main;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import java.io.File;
 import java.io.Serializable;
@@ -78,7 +79,13 @@ public class Settings {
 	protected Map<String, Setting> map;
 
 	public static Settings getDefault() throws JAXBException {
-		return Main.createSettingsFromFile(new File(Settings.class.getClassLoader().getResource("default_settings.xml").getFile()));
+		return createSettingsFromFile(new File(Settings.class.getClassLoader().getResource("default_settings.xml").getFile()));
+	}
+
+	public static Settings createSettingsFromFile(File file) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContext.newInstance(Settings.class);
+		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+		return (Settings) jaxbUnmarshaller.unmarshal(file);
 	}
 
 	/**

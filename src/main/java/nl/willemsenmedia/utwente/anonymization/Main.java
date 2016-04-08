@@ -14,9 +14,7 @@ import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -29,7 +27,20 @@ public class Main extends Application {
 
 	public static Stage mainStage = null;
 	private static Logger log = Logger.getLogger(Main.class.getSimpleName());
+	private static DataviewController controller;
 
+	/**
+	 * When the program is started, this method is used.
+	 * This method will do some checks on how the program is started and will create the settings.
+	 * Checks:
+	 * -	Language (either English (en) or Dutch (nl)
+	 * -	Is the GUI parameter specified? If not, make it false.
+	 * -	Is a settingsfile specified? If not set the default settings
+	 * -	Is a technique specified? If not return an error
+	 * -	Is the specified settings file valid? Does it exist? Does it contain a valid XML? Does it contain the required settings? If not, return an error.
+	 *
+	 * @param args args for the program (not used, only passed to the GUI if used)
+	 */
 	public static void main(String[] args) {
 		//Set language (for wordnet and stopwords etc.)
 		System.setProperty("lang", "en");
@@ -52,20 +63,44 @@ public class Main extends Application {
 			System.exit(-1);
 		} else {
 			log.info("Validate settings");
-			validateSettings(new File(System.getProperty("settings")));
+			Settings settings = validateSettings(new File(System.getProperty("settings")));
 			log.info("Load wordnet");
 			loadWordnet();
 			log.info("Launch");
 			if (System.getProperty("useGUI").equals("false")) {
-				System.err.println("Not yet supported!");
-				System.exit(-1);
+				startProgramWithoutGUI(settings);
+				log.info("Done! Now exit.");
 			} else {
-				launch(args);
+				startGUI(args);
 			}
 		}
 	}
 
-	private static void validateSettings(File settings_file) {
+	private static void startProgramWithoutGUI(Settings settings) {
+		if (System.getProperty("file") == null || System.getProperty("file").equals("")) {
+			System.err.println("Bij gebruik van de tool zonder de GUI is het opgeven van een bestand vereist");
+			System.err.println();
+			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
+			System.exit(-1);
+		}
+		File chosenFile = new File(System.getProperty("file"));
+		if (!chosenFile.exists()) {
+			System.err.println("Bestand \"" + chosenFile.getAbsolutePath() + "\" kon niet gevonden worden! Probeer het opnieuw.");
+			System.err.println();
+			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
+			System.exit(-1);
+		}
+		HomeController controller = new HomeController(chosenFile);
+		controller.setSettings(settings);
+		controller.handleVerwerkBestand(null);
+		Main.controller.exportData(null);
+	}
+
+	private static void startGUI(String[] args) {
+		launch(args);
+	}
+
+	private static Settings validateSettings(File settings_file) {
 		//Validate the xml-file
 		Settings settings = null;
 		try {
@@ -73,7 +108,7 @@ public class Main extends Application {
 			Schema schema = factory.newSchema(new File(Main.class.getClassLoader().getResource("settings_schema.xsd").getFile()));
 			Validator validator = schema.newValidator();
 			validator.validate(new StreamSource(settings_file));
-			settings = createSettingsFromFile(settings_file);
+			settings = Settings.createSettingsFromFile(settings_file);
 		} catch (IOException | JAXBException | SAXException e1) {
 			System.err.println("Het bestand met instellingen is niet valide! Gebruikte bestand: " + settings_file.getAbsolutePath());
 			e1.printStackTrace();
@@ -87,24 +122,23 @@ public class Main extends Application {
 		// -
 
 		//TODO
-
+		return settings;
 	}
 
-	public static Settings createSettingsFromFile(File file) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(Settings.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		return (Settings) jaxbUnmarshaller.unmarshal(file);
-	}
 
 	public static void OpenPageWithData(Settings settings, DataEntry... data) {
-		FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getClassLoader().getResource("gui/dataview.fxml"));
-		try {
-			Parent root = fxmlLoader.load();
-			mainStage.setScene(new Scene(root, 1024, 768));
-		} catch (IOException e) {
-			ErrorHandler.handleException(e);
+		if (System.getProperty("useGUI").equals("false")) {
+			controller = new DataviewController();
+		} else {
+			FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getClassLoader().getResource("gui/dataview.fxml"));
+			try {
+				Parent root = fxmlLoader.load();
+				mainStage.setScene(new Scene(root, 1024, 768));
+			} catch (IOException e) {
+				ErrorHandler.handleException(e);
+			}
+			controller = fxmlLoader.getController();
 		}
-		DataviewController controller = fxmlLoader.getController();
 		controller.setSettings(settings);
 		controller.setData(data);
 	}
@@ -127,7 +161,7 @@ public class Main extends Application {
 		primaryStage.setTitle("Anonimiseer ongestructureerde data");
 		primaryStage.setScene(new Scene(root, 1024, 768));
 		HomeController controller = fxmlLoader.getController();
-		controller.setSettings(createSettingsFromFile(new File(System.getProperty("settings"))));
+		controller.setSettings(Settings.createSettingsFromFile(new File(System.getProperty("settings"))));
 		primaryStage.show();
 	}
 }

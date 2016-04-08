@@ -31,19 +31,32 @@ public class HomeController implements Initializable {
 	public Button verwerkBestand;
 	@FXML
 	public GridPane additionalOptions;
+	private File chosenFile;
 	private Tooltip tooltip;
 	private Settings settings;
 	private String errors_settings;
 	private ArrayList<DataAttribute> headerList;
 
+	/**
+	 * THis is de constructor for GUI usage
+	 */
 	public HomeController() {
 		tooltip = new Tooltip();
 	}
 
+	/**
+	 * THis is the constructor for NON-GUI usage
+	 *
+	 * @param chosenFile
+	 */
+	public HomeController(File chosenFile) {
+		this.chosenFile = chosenFile;
+	}
+
+
 	public void handleVerwerkBestand(ActionEvent event) {
-		File file = new File(bestandsPad.getText());
-		if (file.exists()) {
-			List<DataEntry> data = FileReader.readFile(file, settings, headerList);
+		if (chosenFile.exists()) {
+			List<DataEntry> data = FileReader.readFile(chosenFile, settings, headerList);
 			if (data == null || data.size() == 0) {
 				//Error
 				PopupManager.error("Geen data gevonden", null, "Er is geen data gevonden in het opgegeven bestand.", null);
@@ -85,6 +98,7 @@ public class HomeController implements Initializable {
 		FileChooser fileChooser = new FileChooser();
 		File chosenFile = fileChooser.showOpenDialog(Main.mainStage);
 		if (chosenFile != null) {
+			this.chosenFile = chosenFile;
 			bestandsPad.setText(chosenFile.getAbsolutePath());
 			setTooltipText(chosenFile.getAbsolutePath());
 

@@ -39,16 +39,29 @@ public class DataviewController implements Initializable {
 	public void setData(DataEntry... data) {
 		this.raw_data = Arrays.asList(data);
 		this.anonimous_data = new ArrayList<>();
-		tabPane.getTabs().clear();
+		if (!System.getProperty("useGUI").equals("false"))
+			tabPane.getTabs().clear();
 		tabnr = 0;
 		max_tabs = 25;
 		for (DataEntry raw_entry : this.raw_data) {
+			updateStatus(raw_data.indexOf(raw_entry), raw_data.size());
 			determineTechnique().doPreProcessing(raw_entry, settings);
 			DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
 			anonimous_data.add(anonimous_entry);
-			if (System.getProperty("useGUI").equals("true")) {
+			if (!System.getProperty("useGUI").equals("false")) {
 				makeGUI(raw_entry, anonimous_entry);
 			}
+		}
+	}
+
+	private void updateStatus(int index, int total) {
+		if (!System.getProperty("useGUI").equals("false")) {
+			// TODO: 8-4-2016 make progress bar see: https://trello.com/c/QLNoolrc/31-voeg-een-progress-bar-toe-tijdens-het-anonimiseerproces
+		} else {
+			if (index == 0)
+				System.out.println("Anonimization in progress:");
+			else
+				System.out.println("\t- Entry " + index + " out of " + total + " (" + (index / total * 100) + "%)");
 		}
 	}
 

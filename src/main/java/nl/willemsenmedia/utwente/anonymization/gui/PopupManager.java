@@ -8,6 +8,7 @@ import javafx.scene.layout.Priority;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.logging.Logger;
 
 /**
  * Created by Martijn on 20-2-2016.
@@ -15,6 +16,8 @@ import java.io.StringWriter;
  * Zie ook: http://code.makery.ch/blog/javafx-dialogs-official/
  */
 public class PopupManager {
+
+	static Logger log = Logger.getLogger(PopupManager.class.getSimpleName());
 
 	public static void error(String titel, String header, String msg, Throwable throwable) {
 		try {
@@ -60,10 +63,18 @@ public class PopupManager {
 	}
 
 	public static void info(String titel, String header, String msg) {
-		Alert alert = new Alert(Alert.AlertType.INFORMATION);
-		alert.setTitle(titel);
-		alert.setHeaderText(header);
-		alert.setContentText(msg);
-		alert.showAndWait();
+		if (!System.getProperty("useGUI").equals("false")) {
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setTitle(titel);
+			alert.setHeaderText(header);
+			alert.setContentText(msg);
+			alert.showAndWait();
+		} else {
+			log.info("Popup bericht: " + titel + "\r\n" +
+					"-------------------------------\r\n" +
+					header + "\r\n" +
+					"-------------------------------\r\n" +
+					msg);
+		}
 	}
 }
