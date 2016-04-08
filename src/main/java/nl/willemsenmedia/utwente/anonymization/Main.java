@@ -42,9 +42,11 @@ public class Main extends Application {
 	 * @param args args for the program (not used, only passed to the GUI if used)
 	 */
 	public static void main(String[] args) {
-		//Set language (for wordnet and stopwords etc.)
-		System.setProperty("lang", "en");
-//		System.setProperty("lang", "nl");
+		//Set language (for wordnet and stopwords etc.) if it is not yet set
+		if (System.getProperty("lang") == null || System.getProperty("lang").equals("")) {
+//			System.setProperty("lang", "en");
+			System.setProperty("lang", "nl");
+		}
 		if (System.getProperty("useGUI") == null || System.getProperty("useGUI").equals("") || System.getProperty("useGUI").equals("true")) {
 			System.setProperty("useGUI", "true");
 		}

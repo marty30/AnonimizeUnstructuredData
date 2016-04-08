@@ -71,6 +71,7 @@ public class SmartHashing extends AnonymizationTechnique {
 
 	private boolean isImportantWord(DataEntry dataEntry, String sentence, String word) {
 		boolean isImportant = importantWords.indexOf(word) > -1;
+		// TODO: 8-4-2016 compare ODWN POS with OpenNLP POS tagger
 		if (!isImportant && "true".equals(settings.getSettingsMap().get("anonimiseer_zelfstandige_naamwoorden").getValue())) {
 			isImportant = "noun".equals(ODWNReader.getInstance().getWordType(word));
 			if (isImportant) importantWords.add(word);

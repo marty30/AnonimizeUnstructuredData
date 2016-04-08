@@ -5,6 +5,7 @@ import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
 import nl.willemsenmedia.utwente.anonymization.nlp.NLPHelper;
 import nl.willemsenmedia.utwente.anonymization.nlp.OpenNLPFactory;
+import nl.willemsenmedia.utwente.anonymization.nlp.POS;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import javax.xml.bind.JAXBElement;
@@ -103,7 +104,7 @@ public abstract class AnonymizationTechnique {
 			if (settings.getSettingsMap().get("verwijder_voorzetsels").getValue().equals("true") || settings.getSettingsMap().get("verwijder_datums").getValue().equals("true")) {
 				String[] tagged_tokens = OpenNLPFactory.getPOSTagger().tag(tokens);
 				for (int i = 0; i < tagged_tokens.length; i++) {
-					if (tagged_tokens[i].equals("Prep") || (settings.getSettingsMap().get("verwijder_datums").getValue().equals("true") && NLPHelper.isDate(tokens[i]))) {
+					if (POS.PREPOSITION.is(tagged_tokens[i]) || (settings.getSettingsMap().get("verwijder_datums").getValue().equals("true") && NLPHelper.isDate(tokens[i]))) {
 						attr.setData(attr.getData().replace(tokens[i] + " ", ""));
 					}
 
