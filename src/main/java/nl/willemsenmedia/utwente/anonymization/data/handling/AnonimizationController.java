@@ -54,7 +54,8 @@ public class AnonimizationController extends Task<List<Task<DataEntry>>> {
 				System.out.println("Done cleaning");
 			}
 		});
-		dataviewController.bind(this);
+		if (!System.getProperty("useGUI").equals("false"))
+			dataviewController.bind(this);
 	}
 
 	public static AnonymizationTechnique determineTechnique() {
@@ -150,63 +151,6 @@ public class AnonimizationController extends Task<List<Task<DataEntry>>> {
 	}
 
 	private void pushEntryToView(DataEntry raw_entry, DataEntry anonimous_entry) {
-		Platform.runLater(() -> {
-			dataviewController.addData(raw_entry, anonimous_entry);
-		});
+		Platform.runLater(() -> dataviewController.addData(raw_entry, anonimous_entry));
 	}
-	/*
-	public void setData(DataEntry... data) {
-
-		DoubleProperty progress = new SimpleDoubleProperty(1);
-		pb.progressProperty().bind(progress);
-		progress.bind( new DoubleBinding() {
-			{
-				for (Task<DataEntry> task : results) {
-					bind(task.progressProperty());
-				}
-			}
-
-			@Override
-			public double computeValue() {
-				return results.stream().collect(Collectors.summingDouble(
-						task -> Math.max(task.getProgress(), 0)
-				)) / results.size();
-			}
-		});
-		results.forEach(threadpool::execute);
-
-//		// Retrieve individual results and update progress bar.
-//		int completedTasks = 0;
-//		for (Future<DataEntry> fr : results) {
-//			try {
-//				fr.get();
-//				++completedTasks;
-//				updateStatus(completedTasks, results.size(), pb);
-//			}
-//			 catch (ExecutionException | InterruptedException e) {
-//				ErrorHandler.handleException(e);
-//			}
-//		}
-
-		//Wait for everything to finish.
-		while (!threadpool.isShutdown() || !threadpool.isTerminated()) {
-			threadpool.shutdown();
-		}
-		if (dialogStage != null)
-			dialogStage.close();
-		for (int i = 0; i < raw_data.size(); i++) {
-				DataEntry raw_entry = raw_data.get(i);
-				DataEntry anonimous_entry = anonimous_data[i];
-				if (anonimous_entry == null) {
-					try {
-						anonimous_data[i] = results.get(i).get();
-					} catch (InterruptedException | ExecutionException e) {
-						e.printStackTrace();
-					}
-				}
-				if (!System.getProperty("useGUI").equals("false"))
-					makeGUI(raw_entry, anonimous_entry);
-			}
-	}
-	 */
 }
