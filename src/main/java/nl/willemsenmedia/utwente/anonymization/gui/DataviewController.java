@@ -37,6 +37,33 @@ public class DataviewController implements Initializable {
 	private int max_tabs;
 	private LinkedList<Thread> threatList;
 
+	public static AnonymizationTechnique determineTechnique() {
+		if (System.getProperty("technique") == null) {
+			System.setProperty("technique", "");
+		}
+		switch (System.getProperty("technique")) {
+			case "HashSentence":
+				return new HashSentence();
+			case "HashAll":
+				return new HashAll();
+			case "SmartHashing":
+				return new SmartHashing();
+			case "GeneralizeOrSuppress":
+			case "k-anonymity":
+				return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
+			default:
+				//Do nothing with the raw_data
+				return new AnonymizationTechnique() {
+					@Override
+					public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+						DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
+						dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
+						return newDataEntry;
+					}
+				};
+		}
+	}
+
 	public void setData(DataEntry... data) {
 		this.raw_data = Arrays.asList(data);
 		this.anonimous_data = new DataEntry[raw_data.size()];
@@ -138,33 +165,6 @@ public class DataviewController implements Initializable {
 			tab.setContent(sp);
 			tabPane.getTabs().add(tab);
 			tabnr++;
-		}
-	}
-
-	private AnonymizationTechnique determineTechnique() {
-		if (System.getProperty("technique") == null) {
-			System.setProperty("technique", "");
-		}
-		switch (System.getProperty("technique")) {
-			case "HashSentence":
-				return new HashSentence();
-			case "HashAll":
-				return new HashAll();
-			case "SmartHashing":
-				return new SmartHashing();
-			case "GeneralizeOrSuppress":
-			case "k-anonymity":
-				return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
-			default:
-				//Do nothing with the raw_data
-				return new AnonymizationTechnique() {
-					@Override
-					public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
-						DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
-						dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
-						return newDataEntry;
-					}
-				};
 		}
 	}
 

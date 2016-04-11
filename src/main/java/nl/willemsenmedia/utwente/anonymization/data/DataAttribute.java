@@ -15,6 +15,7 @@ public class DataAttribute implements Cloneable {
 	private String name;
 	private boolean doAnonimize = true;
 	private ReadWriteLock rwlock = new ReentrantReadWriteLock();
+	private int id;
 
 	public DataAttribute(DataType dataType, String data) {
 		this(dataType, null, data, true);
@@ -68,5 +69,13 @@ public class DataAttribute implements Cloneable {
 	@Override
 	public DataAttribute clone() {
 		return new DataAttribute(this.getDataType(), this.name, this.getData(), this.doAnonimize);
+	}
+
+	public void setID(int id) {
+		this.id = id;
+	}
+
+	public int getId() {
+		return id;
 	}
 }
