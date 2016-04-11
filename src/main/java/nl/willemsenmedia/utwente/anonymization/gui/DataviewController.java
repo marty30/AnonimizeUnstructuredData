@@ -16,6 +16,7 @@ import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.net.URL;
+import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -63,17 +64,19 @@ public class DataviewController implements Initializable {
 			}
 		});
 		List<Callable<Object>> todo = new ArrayList<>(raw_data.size());
-		todo.addAll(this.raw_data.stream().map(raw_entry -> Executors.callable(() -> {
+		todo.addAll(this.raw_data.stream().map(raw_entry -> Executors.callable((PrivilegedAction<DataEntry>) () -> {
 			int index = raw_data.indexOf(raw_entry);
 			updateStatus(index, raw_data.size());
 			determineTechnique().doPreProcessing(raw_entry, settings);
 			DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
 			anonimous_data[index] = anonimous_entry;
+			return anonimous_entry;
 		})).collect(Collectors.toList()));
 
 		//Start all
+		List<Future<Object>> answers = null;
 		try {
-			List<Future<Object>> answers = threadpool.invokeAll(todo);
+			answers = threadpool.invokeAll(todo);
 			System.out.println("Done!");
 		} catch (InterruptedException e) {
 			ErrorHandler.handleException(e);
@@ -83,11 +86,23 @@ public class DataviewController implements Initializable {
 		while (!threadpool.isShutdown() || !threadpool.isTerminated()) {
 			threadpool.shutdown();
 		}
-		if (!System.getProperty("useGUI").equals("false"))
+
 			for (int i = 0; i < raw_data.size(); i++) {
 				DataEntry raw_entry = raw_data.get(i);
 				DataEntry anonimous_entry = anonimous_data[i];
-				makeGUI(raw_entry, anonimous_entry);
+				if (anonimous_entry == null) {
+					if (answers == null) {
+						throw new NullPointerException("answers is null");
+					} else {//if (answers.get(i).isDone()){
+						try {
+							anonimous_data[i] = ((DataEntry) answers.get(i).get());
+						} catch (InterruptedException | ExecutionException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				if (!System.getProperty("useGUI").equals("false"))
+					makeGUI(raw_entry, anonimous_entry);
 			}
 	}
 

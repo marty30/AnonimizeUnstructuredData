@@ -9,7 +9,6 @@ import nl.willemsenmedia.utwente.anonymization.nlp.POS;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -66,31 +65,27 @@ public abstract class AnonymizationTechnique {
 	 * @return
 	 */
 	public DataEntry doPreProcessing(DataEntry dataEntry, Settings settings) {
-		if (settings.getSettingsMap().get("verwijder_lidwoorden").getValue().equals("true")) {
-			Settings.Setting.Entry new_entry = new Settings.Setting.Entry();
-			new_entry.setRegexReplace(" ");
-			if ("en".equals(System.getProperty("lang"))) {
-				new_entry.setRegexSearch("( [Tt]he | [Aa] | [Aa]n )");
-			} else {
-				new_entry.setRegexSearch("( [Dd]e | [Hh]et | [Ee]en )");
+		for (DataAttribute attr : dataEntry.getDataAttributes()) {//Remove punctuation
+			if (settings.getSettingsMap().get("verwijder_leestekens").getValue().equals("true")) {
+				attr.setData(attr.getData().replaceAll("[^\\w\\s]", ""));
 			}
-			if (settings.getSettingsMap().get("regexes").getContent().stream().parallel().filter(serializable1 -> serializable1 instanceof JAXBElement).filter((serializable) -> ((Settings.Setting.Entry) ((JAXBElement) serializable).getValue()).getRegexSearch().equals(new_entry.getRegexSearch())).count() == 0)
-				settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
-		}
-
-		if (settings.getSettingsMap().get("verwijder_leestekens").getValue().equals("true")) {
-			Settings.Setting.Entry new_entry = new Settings.Setting.Entry();
-			new_entry.setRegexReplace("");
-			new_entry.setRegexSearch("[^\\w\\s]");
-			if (settings.getSettingsMap().get("regexes").getContent().stream().parallel().filter(serializable1 -> serializable1 instanceof JAXBElement).filter((serializable) -> ((Settings.Setting.Entry) ((JAXBElement) serializable).getValue()).getRegexSearch().equals(new_entry.getRegexSearch())).count() == 0)
-				settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
-		}
-
-		for (DataAttribute attr : dataEntry.getDataAttributes()) {
+			// Handle specific regexes
 			settings.getSettingsMap().get("regexes").getContent().stream().filter(regex_list_entry -> regex_list_entry instanceof JAXBElement).forEach(regex_list_entry -> {
 				Settings.Setting.Entry entry = (Settings.Setting.Entry) ((JAXBElement) regex_list_entry).getValue();
 				attr.setData(attr.getData().replaceAll(entry.getRegexSearch(), entry.getRegexReplace()));
 			});
+			//Now remove stopwords
+			if (settings.getSettingsMap().get("verwijder_lidwoorden").getValue().equals("true")) {
+				Settings.Setting.Entry entry = new Settings.Setting.Entry();
+				entry.setRegexReplace(" ");
+				if ("en".equals(System.getProperty("lang"))) {
+					entry.setRegexSearch("( [Tt]he | [Aa] | [Aa]n )");
+				} else {
+					entry.setRegexSearch("( [Dd]e | [Hh]et | [Ee]en )");
+				}
+				attr.setData(attr.getData().replaceAll(entry.getRegexSearch(), entry.getRegexReplace()));
+			}
+
 			//Handle the case of the words
 			if (settings.getSettingsMap().get("maak_alle_woorden_lowercase").getValue().equals("true")) {
 				attr.setData(attr.getData().toLowerCase());
