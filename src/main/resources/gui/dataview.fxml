@@ -10,18 +10,36 @@
     </columnConstraints>
     <rowConstraints>
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
     <HBox alignment="TOP_CENTER">
         <Label text="Geanonimiseerde data" textAlignment="CENTER" GridPane.fillWidth="true"/>
     </HBox>
-    <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowIndex="1">
-        <Tab text="No data!">
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+    <HBox alignment="CENTER" fx:id="progressbox" GridPane.fillWidth="true" GridPane.rowIndex="1">
+        <Label text="Anonimiseren is bezig:" textAlignment="CENTER"/>
+        <ProgressBar fx:id="progressBar" GridPane.fillWidth="true"/>
+    </HBox>
+    <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowIndex="2">
+        <Tab text="Anonieme data">
+            <!--<TableView fx:id="anonymous_data_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">-->
+            <!--<TableColumn/>-->
+            <!--</TableView>-->
+            <ScrollPane fx:id="anonymous_data_scrollpane">
+                <GridPane fx:id="anonymous_data_pane"/>
+            </ScrollPane>
+        </Tab>
+        <Tab text="Reguliere data">
+            <!--<TableView fx:id="raw_data_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">-->
+            <!--<TableColumn/>-->
+            <!--</TableView>-->
+            <ScrollPane fx:id="raw_data_scrollpane">
+                <GridPane fx:id="raw_data_pane"/>
+            </ScrollPane>
         </Tab>
     </TabPane>
-    <GridPane GridPane.rowIndex="2">
+    <GridPane GridPane.rowIndex="3">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>

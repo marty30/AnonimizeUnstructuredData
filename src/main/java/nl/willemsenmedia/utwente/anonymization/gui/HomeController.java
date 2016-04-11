@@ -1,6 +1,5 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
-import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -10,7 +9,9 @@ import javafx.stage.FileChooser;
 import nl.willemsenmedia.utwente.anonymization.Main;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.FileType;
+import nl.willemsenmedia.utwente.anonymization.data.handling.AnonimizationController;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
@@ -65,10 +66,8 @@ public class HomeController implements Initializable {
 				//Error
 				PopupManager.error("Ongeldige settings", null, "Er is een probleem opgetreden tijdens het valideren van de instellingen: " + (errors_settings.equals("") ? "Onbekende fout." : errors_settings), null);
 			} else {
-				// Het bestand is ingelezen
-				DataEntry[] data_array = new DataEntry[data.size()];
-				data_array = data.toArray(data_array);
-				Main.OpenPageWithData(settings, data_array);
+				// Het bestand is ingelezen, nu anonimiseren
+				new Thread(AnonimizationController.getInstance(data, settings, Main.OpenPageWithData(settings))).start();
 			}
 		} else {
 			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand \"" + bestandsPad.getText() + "\" niet vinden. Probeer het opnieuw.", null);
@@ -107,7 +106,7 @@ public class HomeController implements Initializable {
 			GridPane options = createGuiForSettings(fileType);
 			headerList = new ArrayList<>();
 			GridPane headers = getHeaders(fileType, chosenFile, headerList);
-//			additionalOptions.add(headers, 1, 1, 2, 1);
+			additionalOptions.add(headers, 1, 1, 2, 1);
 			additionalOptions.add(options, 1, 2, 2, 1);
 			additionalOptions.setVisible(additionalOptions.getChildren().size() > 0);
 		}
@@ -290,7 +289,8 @@ public class HomeController implements Initializable {
 	private GridPane getHeaders(FileType fileType, File file, List<DataAttribute> attributeList) {
 		GridPane pane = new GridPane();
 		pane.add(new Label("Kolom"), 0, 0);
-		pane.add(new Label("Annonimiseer deze kolom?"), 1, 0);
+		pane.add(new Label("Wat is het data type?"), 1, 0);
+		pane.add(new Label("Annonimiseer deze kolom?"), 2, 0);
 		if (fileType.equals(FileType.CSV)) {
 			attributeList.clear();
 			attributeList.addAll(FileReader.readCSVHeaders(file));
@@ -304,15 +304,18 @@ public class HomeController implements Initializable {
 			DataAttribute attribute = attributeList.get(i);
 			Label label = new Label(attribute.getData());
 			pane.add(label, 0, i + 1);
-			ComboBox<String> choicebox = new ComboBox<>();
-			choicebox.getItems().addAll("Ja", "Nee");
-			choicebox.getProperties().addListener(new MapChangeListener<Object, Object>() {
-				@Override
-				public void onChanged(Change<?, ?> change) {
-					attribute.setDoAnonimize(!"Nee".equals(choicebox.getValue()));
-				}
+			ComboBox<DataType> datatype = new ComboBox<>();
+			datatype.getItems().addAll(DataType.values());
+			datatype.valueProperty().addListener((observable, oldValue, newValue) -> {
+				attribute.setDataType(datatype.getValue());
 			});
-			pane.add(choicebox, 1, i + 1);
+			pane.add(datatype, 1, i + 1);
+			ComboBox<String> do_anonimize = new ComboBox<>();
+			do_anonimize.getItems().addAll("Ja", "Nee");
+			do_anonimize.valueProperty().addListener((observable, oldValue, newValue) -> {
+				attribute.setDoAnonimize(!"Nee".equals(do_anonimize.getValue()));
+			});
+			pane.add(do_anonimize, 2, i + 1);
 		}
 		return pane;
 	}

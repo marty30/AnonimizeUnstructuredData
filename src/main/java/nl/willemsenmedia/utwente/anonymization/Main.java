@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 import nl.willemsenmedia.utwente.anonymization.gui.HomeController;
@@ -42,6 +41,8 @@ public class Main extends Application {
 	 * @param args args for the program (not used, only passed to the GUI if used)
 	 */
 	public static void main(String[] args) {
+		//Fix for bug with comboboxes: https://bugs.openjdk.java.net/browse/JDK-8132897
+		System.setProperty("glass.accessible.force", "false");
 		//Set language (for wordnet and stopwords etc.) if it is not yet set
 		if (System.getProperty("lang") == null || System.getProperty("lang").equals("")) {
 //			System.setProperty("lang", "en");
@@ -129,7 +130,7 @@ public class Main extends Application {
 	}
 
 
-	public static void OpenPageWithData(Settings settings, DataEntry... data) {
+	public static DataviewController OpenPageWithData(Settings settings) {
 		if (System.getProperty("useGUI").equals("false")) {
 			controller = new DataviewController();
 		} else {
@@ -143,7 +144,7 @@ public class Main extends Application {
 			controller = fxmlLoader.getController();
 		}
 		controller.setSettings(settings);
-		controller.setData(data);
+		return controller;
 	}
 
 	private static void loadWordnet() {
