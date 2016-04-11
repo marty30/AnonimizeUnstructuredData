@@ -84,7 +84,7 @@ public class FileWriter {
 			}
 
 			System.out.println("CSV file was created successfully !!!");
-			PopupManager.info("Data geëxporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + exportFile.toString() + "\".");
+			PopupManager.info("Data ge&euml;xporteerd", null, "De data die hier zichtbaar is, is geëxporteerd naar het bestand met de naam \"" + exportFile.toString() + "\".");
 
 		} catch (Exception e) {
 			System.out.println("Error in CsvFileWriter !!!");

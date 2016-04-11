@@ -17,12 +17,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.File;
+import javax.xml.transform.stream.StreamSource;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -79,10 +80,10 @@ public class Settings {
 	protected Map<String, Setting> map;
 
 	public static Settings getDefault() throws JAXBException {
-		return createSettingsFromFile(new File(Settings.class.getClassLoader().getResource("default_settings.xml").getFile()));
+		return createSettingsFromFile(new StreamSource(Settings.class.getClassLoader().getResourceAsStream("default_settings.xml")));
 	}
 
-	public static Settings createSettingsFromFile(File file) throws JAXBException {
+	public static Settings createSettingsFromFile(StreamSource file) throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(Settings.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		return (Settings) jaxbUnmarshaller.unmarshal(file);
@@ -110,14 +111,14 @@ public class Settings {
 	 */
 	public List<Settings.Setting> getSetting() {
 		if (setting == null) {
-			setting = new ArrayList<>();
+			setting = Collections.synchronizedList(new ArrayList<>());
 		}
 		return this.setting;
 	}
 
 	public Map<String, Setting> getSettingsMap() {
 		if (map == null || map.size() == 0) {
-			map = new HashMap<>();
+			map = new ConcurrentHashMap<>();
 			for (Setting setting : this.setting) {
 				map.put(setting.getName(), setting);
 			}
@@ -199,9 +200,9 @@ public class Settings {
 		 * {@link String }
 		 * {@link JAXBElement }{@code <}{@link Settings.Setting.Entry }{@code >}
 		 */
-		public List<Serializable> getContent() {
+		public synchronized List<Serializable> getContent() {
 			if (content == null) {
-				content = new ArrayList<>();
+				content = Collections.synchronizedList(new ArrayList<>());
 			}
 			return this.content;
 		}

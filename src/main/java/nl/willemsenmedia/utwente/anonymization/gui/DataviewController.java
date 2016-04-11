@@ -16,10 +16,9 @@ import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Martijn on 20-2-2016.
@@ -29,29 +28,67 @@ import java.util.ResourceBundle;
 public class DataviewController implements Initializable {
 	private static final String AttributeSeparator = "--------------------------";
 	private List<DataEntry> raw_data;
-	private List<DataEntry> anonimous_data;
+	private DataEntry[] anonimous_data;
 	@FXML
 	private TabPane tabPane;
 	private Settings settings;
 	private int tabnr;
 	private int max_tabs;
+	private LinkedList<Thread> threatList;
 
 	public void setData(DataEntry... data) {
 		this.raw_data = Arrays.asList(data);
-		this.anonimous_data = new ArrayList<>();
+		this.anonimous_data = new DataEntry[raw_data.size()];
 		if (!System.getProperty("useGUI").equals("false"))
 			tabPane.getTabs().clear();
 		tabnr = 0;
 		max_tabs = 25;
-		for (DataEntry raw_entry : this.raw_data) {
-			updateStatus(raw_data.indexOf(raw_entry), raw_data.size());
+		ExecutorService threadpool = Executors.newFixedThreadPool(5);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				System.out.println("Performing some shutdown cleanup...");
+				threadpool.shutdown();
+				while (true) {
+					try {
+						System.out.println("Waiting for the service to terminate...");
+						if (threadpool.awaitTermination(5, TimeUnit.SECONDS)) {
+							break;
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				System.out.println("Done cleaning");
+			}
+		});
+		List<Callable<Object>> todo = new ArrayList<>(raw_data.size());
+		todo.addAll(this.raw_data.stream().map(raw_entry -> Executors.callable(() -> {
+			int index = raw_data.indexOf(raw_entry);
+			updateStatus(index, raw_data.size());
 			determineTechnique().doPreProcessing(raw_entry, settings);
 			DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
-			anonimous_data.add(anonimous_entry);
-			if (!System.getProperty("useGUI").equals("false")) {
+			anonimous_data[index] = anonimous_entry;
+		})).collect(Collectors.toList()));
+
+		//Start all
+		try {
+			List<Future<Object>> answers = threadpool.invokeAll(todo);
+			System.out.println("Done!");
+		} catch (InterruptedException e) {
+			ErrorHandler.handleException(e);
+		}
+
+		//Wait for everything to finish.
+		while (!threadpool.isShutdown() || !threadpool.isTerminated()) {
+			threadpool.shutdown();
+		}
+		if (!System.getProperty("useGUI").equals("false"))
+			for (int i = 0; i < raw_data.size(); i++) {
+				DataEntry raw_entry = raw_data.get(i);
+				DataEntry anonimous_entry = anonimous_data[i];
 				makeGUI(raw_entry, anonimous_entry);
 			}
-		}
 	}
 
 	private void updateStatus(int index, int total) {
@@ -59,9 +96,9 @@ public class DataviewController implements Initializable {
 			// TODO: 8-4-2016 make progress bar see: https://trello.com/c/QLNoolrc/31-voeg-een-progress-bar-toe-tijdens-het-anonimiseerproces
 		} else {
 			if (index == 0)
-				System.out.println("Anonimization in progress:");
-			else
-				System.out.println("\t- Entry " + index + " out of " + total + " (" + (index / total * 100) + "%)");
+				System.out.println("Anonimization bezig ...");
+			System.out.printf("\t- Entry " + (index + 1) + " van de " + total + " aan het verwerken. Dit is %.2f%% van het totaal.\r", (double) (index + 1) / total * 100);
+			System.out.flush();
 		}
 	}
 
@@ -122,7 +159,7 @@ public class DataviewController implements Initializable {
 	}
 
 	public void exportData(ActionEvent event) {
-		FileWriter.exportDataToCSV(anonimous_data, FileWriter.createFile(".csv"));
+		FileWriter.exportDataToCSV(Arrays.asList(anonimous_data), FileWriter.createFile(".csv"));
 
 	}
 

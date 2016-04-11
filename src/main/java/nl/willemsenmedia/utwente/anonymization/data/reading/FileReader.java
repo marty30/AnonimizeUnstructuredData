@@ -38,7 +38,7 @@ public class FileReader {
 				switch (fileType) {
 					case XLS:
 					case XLSX:
-						if (bevatKopteksten && headerList == null)
+						if (bevatKopteksten && (headerList == null || headerList.size() == 0))
 							headers = readExcelHeaders(chosenFile);
 						else if (bevatKopteksten)
 							headers = headerList;

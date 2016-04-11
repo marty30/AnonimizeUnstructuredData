@@ -47,7 +47,7 @@ public class DataModifier {
 		return new String(Base64.getEncoder().encode(data));
 	}
 
-	public static String getStem(String word) {
+	public static synchronized String getStem(String word) {
 		SnowballStemmer stemmer;
 		if ("en".equals(System.getProperty("lang"))) {
 			if (en_stemmer == null) {

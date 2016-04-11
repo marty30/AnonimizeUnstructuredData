@@ -1,6 +1,5 @@
 package nl.willemsenmedia.utwente.anonymization.nlp;
 
-import com.sun.istack.internal.NotNull;
 import jlibs.xml.DefaultNamespaceContext;
 import jlibs.xml.sax.dog.DataType;
 import jlibs.xml.sax.dog.NodeItem;
@@ -19,8 +18,8 @@ import org.xml.sax.InputSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathException;
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class ODWNReader {
 	private final HashMap<String, HashMap<String, Object>> discovered;
 
 	private ODWNReader() throws JAXBException {
-		File file = new File(this.getClass().getClassLoader().getResource("odwn_orbn_gwg-LMF_1.3.xml").getFile());
+		StreamSource file = new StreamSource(this.getClass().getClassLoader().getResourceAsStream("odwn_orbn_gwg-LMF_1.3.xml"));
 		JAXBContext jaxbContext = JAXBContext.newInstance(LexicalResource.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		lexicalResource = (LexicalResource) jaxbUnmarshaller.unmarshal(file);
@@ -74,11 +73,11 @@ public class ODWNReader {
 		discovered.put(word, leAsMap);
 	}
 
-	public LexicalEntry getLexicalEntry(@NotNull String word) {
+	public LexicalEntry getLexicalEntry(String word) {
 		return getLexicalEntry(word, false);
 	}
 
-	public LexicalEntry getLexicalEntry(@NotNull String word, boolean limitToLemmas) {
+	public LexicalEntry getLexicalEntry(String word, boolean limitToLemmas) {
 		if (word == null) {
 			return null;
 		}

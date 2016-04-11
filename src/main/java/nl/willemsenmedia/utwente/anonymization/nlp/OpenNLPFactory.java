@@ -15,45 +15,70 @@ import java.io.IOException;
  */
 public class OpenNLPFactory {
 
-	private static POSTagger en_postagger;
-	private static POSTagger nl_postagger;
-	private static Tokenizer en_tokenizer;
-	private static Tokenizer nl_tokenizer;
+	private static ThreadLocal<POSTagger> en_postagger;
+	private static ThreadLocal<POSTagger> nl_postagger;
+	private static ThreadLocal<Tokenizer> en_tokenizer;
+	private static ThreadLocal<Tokenizer> nl_tokenizer;
 
 	public static POSTagger getPOSTagger() {
-
-		try {
-			if ("en".equals(System.getProperty("lang"))) {
-				if (en_postagger == null)
-					en_postagger = new POSTaggerME(new POSModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/en-pos-maxent.bin")));
-				return en_postagger;
-			} else {
-				if (nl_postagger == null)
-					nl_postagger = new POSTaggerME(new POSModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/nl-pos-maxent.bin")));
-				return nl_postagger;
-			}
-
-		} catch (IOException e) {
-			ErrorHandler.handleException(e);
-			return null;
+		if ("en".equals(System.getProperty("lang"))) {
+			if (en_postagger == null)
+				en_postagger = new ThreadLocal<POSTagger>() {
+					protected POSTagger initialValue() {
+						try {
+							return new POSTaggerME(new POSModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/en-pos-maxent.bin")));
+						} catch (IOException e) {
+							ErrorHandler.handleException(e);
+							return null;
+						}
+					}
+				};
+			return en_postagger.get();
+		} else {
+			if (nl_postagger == null)
+				nl_postagger = new ThreadLocal<POSTagger>() {
+					protected POSTagger initialValue() {
+						try {
+							return new POSTaggerME(new POSModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/nl-pos-maxent.bin")));
+						} catch (IOException e) {
+							ErrorHandler.handleException(e);
+							return null;
+						}
+					}
+				};
+			return nl_postagger.get();
 		}
+
 	}
 
 	public static Tokenizer getTokenizer() {
-		try {
-			if ("en".equals(System.getProperty("lang"))) {
-				if (en_tokenizer == null)
-					en_tokenizer = new TokenizerME(new TokenizerModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/en-token.bin")));
-				return en_tokenizer;
-			} else {
-				if (nl_tokenizer == null)
-					nl_tokenizer = new TokenizerME(new TokenizerModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/nl-token.bin")));
-				return nl_tokenizer;
-			}
-
-		} catch (IOException e) {
-			ErrorHandler.handleException(e);
-			return null;
+		if ("en".equals(System.getProperty("lang"))) {
+			if (en_tokenizer == null)
+				en_tokenizer = new ThreadLocal<Tokenizer>() {
+					protected Tokenizer initialValue() {
+						try {
+							return new TokenizerME(new TokenizerModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/en-token.bin")));
+						} catch (IOException e) {
+							ErrorHandler.handleException(e);
+							return null;
+						}
+					}
+				};
+			return en_tokenizer.get();
+		} else {
+			if (nl_tokenizer == null)
+				nl_tokenizer = new ThreadLocal<Tokenizer>() {
+					protected Tokenizer initialValue() {
+						try {
+							return new TokenizerME(new TokenizerModel(OpenNLPFactory.class.getClassLoader().getResourceAsStream("openNLP_models/nl-token.bin")));
+						} catch (IOException e) {
+							ErrorHandler.handleException(e);
+							return null;
+						}
+					}
+				};
+			return nl_tokenizer.get();
 		}
+
 	}
 }

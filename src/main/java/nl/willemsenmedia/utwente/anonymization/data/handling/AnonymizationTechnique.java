@@ -74,14 +74,16 @@ public abstract class AnonymizationTechnique {
 			} else {
 				new_entry.setRegexSearch("( [Dd]e | [Hh]et | [Ee]en )");
 			}
-			settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
+			if (settings.getSettingsMap().get("regexes").getContent().stream().parallel().filter(serializable1 -> serializable1 instanceof JAXBElement).filter((serializable) -> ((Settings.Setting.Entry) ((JAXBElement) serializable).getValue()).getRegexSearch().equals(new_entry.getRegexSearch())).count() == 0)
+				settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
 		}
 
 		if (settings.getSettingsMap().get("verwijder_leestekens").getValue().equals("true")) {
 			Settings.Setting.Entry new_entry = new Settings.Setting.Entry();
 			new_entry.setRegexReplace("");
 			new_entry.setRegexSearch("[^\\w\\s]");
-			settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
+			if (settings.getSettingsMap().get("regexes").getContent().stream().parallel().filter(serializable1 -> serializable1 instanceof JAXBElement).filter((serializable) -> ((Settings.Setting.Entry) ((JAXBElement) serializable).getValue()).getRegexSearch().equals(new_entry.getRegexSearch())).count() == 0)
+				settings.getSettingsMap().get("regexes").getContent().add(new JAXBElement<>(QName.valueOf("entry"), Settings.Setting.Entry.class, Settings.Setting.class, new_entry));
 		}
 
 		for (DataAttribute attr : dataEntry.getDataAttributes()) {

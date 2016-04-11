@@ -1,5 +1,8 @@
 package nl.willemsenmedia.utwente.anonymization.data;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
  * Created by Martijn on 8-3-2016.
  * <p>
@@ -11,6 +14,7 @@ public class DataAttribute implements Cloneable {
 	private String data;
 	private String name;
 	private boolean doAnonimize = true;
+	private ReadWriteLock rwlock = new ReentrantReadWriteLock();
 
 	public DataAttribute(DataType dataType, String data) {
 		this(dataType, null, data, true);
@@ -28,11 +32,21 @@ public class DataAttribute implements Cloneable {
 	}
 
 	public String getData() {
-		return data;
+		rwlock.writeLock().lock();
+		try {
+			return data;
+		} finally {
+			rwlock.writeLock().unlock();
+		}
 	}
 
 	public void setData(String data) {
-		this.data = data.trim();
+		rwlock.readLock().lock();
+		try {
+			this.data = data.trim();
+		} finally {
+			rwlock.readLock().unlock();
+		}
 	}
 
 	public boolean doAnonimize() {

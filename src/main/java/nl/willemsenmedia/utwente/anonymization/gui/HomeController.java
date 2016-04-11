@@ -106,7 +106,7 @@ public class HomeController implements Initializable {
 			FileType fileType = FileReader.determineFileType(chosenFile);
 			GridPane options = createGuiForSettings(fileType);
 			headerList = new ArrayList<>();
-//			GridPane headers = getHeaders(fileType, chosenFile, headerList);
+			GridPane headers = getHeaders(fileType, chosenFile, headerList);
 //			additionalOptions.add(headers, 1, 1, 2, 1);
 			additionalOptions.add(options, 1, 2, 2, 1);
 			additionalOptions.setVisible(additionalOptions.getChildren().size() > 0);

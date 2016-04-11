@@ -65,7 +65,7 @@ public class Main extends Application {
 			System.exit(-1);
 		} else {
 			log.info("Validate settings");
-			Settings settings = validateSettings(new File(System.getProperty("settings")));
+			Settings settings = validateSettings(new StreamSource(System.getProperty("settings")));
 			log.info("Load wordnet");
 			loadWordnet();
 			log.info("Launch");
@@ -75,6 +75,7 @@ public class Main extends Application {
 			} else {
 				startGUI(args);
 			}
+			System.exit(0);
 		}
 	}
 
@@ -102,17 +103,17 @@ public class Main extends Application {
 		launch(args);
 	}
 
-	private static Settings validateSettings(File settings_file) {
+	private static Settings validateSettings(StreamSource settings_file) {
 		//Validate the xml-file
 		Settings settings = null;
 		try {
 			SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			Schema schema = factory.newSchema(new File(Main.class.getClassLoader().getResource("settings_schema.xsd").getFile()));
+			Schema schema = factory.newSchema(new StreamSource(Main.class.getClassLoader().getResourceAsStream("settings_schema.xsd")));
 			Validator validator = schema.newValidator();
-			validator.validate(new StreamSource(settings_file));
+			validator.validate(settings_file);
 			settings = Settings.createSettingsFromFile(settings_file);
 		} catch (IOException | JAXBException | SAXException e1) {
-			System.err.println("Het bestand met instellingen is niet valide! Gebruikte bestand: " + settings_file.getAbsolutePath());
+			System.err.println("Het bestand met instellingen is niet valide! Gebruikte bestand: " + settings_file.getPublicId());
 			e1.printStackTrace();
 			System.exit(-1);
 		}
@@ -132,9 +133,9 @@ public class Main extends Application {
 		if (System.getProperty("useGUI").equals("false")) {
 			controller = new DataviewController();
 		} else {
-			FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getClassLoader().getResource("gui/dataview.fxml"));
+			FXMLLoader fxmlLoader = new FXMLLoader();
 			try {
-				Parent root = fxmlLoader.load();
+				Parent root = fxmlLoader.load(Main.class.getClassLoader().getResourceAsStream("gui/dataview.fxml"));
 				mainStage.setScene(new Scene(root, 1024, 768));
 			} catch (IOException e) {
 				ErrorHandler.handleException(e);
@@ -163,7 +164,7 @@ public class Main extends Application {
 		primaryStage.setTitle("Anonimiseer ongestructureerde data");
 		primaryStage.setScene(new Scene(root, 1024, 768));
 		HomeController controller = fxmlLoader.getController();
-		controller.setSettings(Settings.createSettingsFromFile(new File(System.getProperty("settings"))));
+		controller.setSettings(Settings.createSettingsFromFile(new StreamSource(System.getProperty("settings"))));
 		primaryStage.show();
 	}
 }
