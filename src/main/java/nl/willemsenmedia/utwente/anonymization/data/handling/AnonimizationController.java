@@ -1,30 +1,31 @@
 package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.writing.FileWriter;
 import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
+import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by Martijn on 11-4-2016.
  */
-public class AnonimizationController extends Task<List<Task<DataEntry>>> {
+public class AnonimizationController implements Callable<List<Callable<DataEntry>>> {
 	private static AnonimizationController instance;
 	private final List<DataEntry> raw_data;
 	private final DataEntry[] anonimous_data;
 	private final ExecutorService threadpool;
 	private final Settings settings;
 	private final DataviewController dataviewController;
+	private DoubleProperty progressProperty = new SimpleDoubleProperty();
+	private boolean done = false;
 
 	private AnonimizationController(List<DataEntry> raw_data, Settings settings, DataviewController dataviewController) {
 		this.raw_data = raw_data;
@@ -55,7 +56,7 @@ public class AnonimizationController extends Task<List<Task<DataEntry>>> {
 			}
 		});
 		if (!System.getProperty("useGUI").equals("false"))
-			dataviewController.bind(this);
+			dataviewController.bind(progressProperty);
 	}
 
 	public static AnonymizationTechnique determineTechnique() {
@@ -91,9 +92,21 @@ public class AnonimizationController extends Task<List<Task<DataEntry>>> {
 		return instance;
 	}
 
-	public static void exportData() throws ExecutionException, InterruptedException {
-		if (!instance.isDone())
-			instance.get();
+	public static void exportData() {
+		if (!instance.done) {
+			if (!System.getProperty("useGUI").equals("false"))
+				//TODO ik weet nog niet zo goed wat ik hiermee ga doen.
+				instance.call();
+			else {
+				while (!instance.done) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						ErrorHandler.handleException(e);
+					}
+				}
+			}
+		}
 		FileWriter.exportDataToCSV(Arrays.asList(instance.anonimous_data), FileWriter.createFile(".csv"));
 	}
 
@@ -106,38 +119,69 @@ public class AnonimizationController extends Task<List<Task<DataEntry>>> {
 	}
 
 	private void updateStatus(int index) {
-		if (!System.getProperty("useGUI").equals("false"))
-			Platform.runLater(() -> updateProgress(index, raw_data.size()));
+		double workDone = index;
+		double max = raw_data.size();
+		if (!System.getProperty("useGUI").equals("false")) {
+			// @see Task#updateProgress()
+			// Adjust Infinity / NaN to be -1 for both workDone and max.
+			if (Double.isInfinite(workDone) || Double.isNaN(workDone)) {
+				workDone = -1;
+			}
+
+			if (Double.isInfinite(max) || Double.isNaN(max)) {
+				max = -1;
+			}
+
+			if (workDone < 0) {
+				workDone = -1;
+			}
+
+			if (max < 0) {
+				max = -1;
+			}
+
+			// Clamp the workDone if necessary so as not to exceed max
+			if (workDone > max) {
+				workDone = max;
+			}
+			if (workDone == -1) {
+				progressProperty.setValue(-1);
+			} else {
+				progressProperty.setValue(workDone / max);
+			}
+		}
 		System.out.printf("\t- Entry " + (index + 1) + " van de " + raw_data.size() + " aan het verwerken. Dit is %.2f%% van het totaal.\r", (double) (index + 1) / raw_data.size() * 100);
 		System.out.flush();
 
 	}
 
 	@Override
-	protected List<Task<DataEntry>> call() throws Exception {
-		List<Task<DataEntry>> results = new ArrayList<>();
+	public List<Callable<DataEntry>> call() {
+		List<Callable<DataEntry>> todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
-			Task<DataEntry> c = new Task<DataEntry>() {
-				@Override
-				protected DataEntry call() throws Exception {
-					DataEntry anonimous_entry = anonimizeEntry(raw_entry);
-					if (!System.getProperty("useGUI").equals("false"))
-						pushEntryToView(raw_entry, anonimous_entry);
-					return anonimous_entry;
-				}
-			};
-			results.add(c);
+			todolist.add(() -> {
+				DataEntry anonimous_entry = anonimizeEntry(raw_entry);
+				if (!System.getProperty("useGUI").equals("false"))
+					pushEntryToView(raw_entry, anonimous_entry);
+				return anonimous_entry;
+			});
 		}
 		//Run all tasks
 		System.out.println("Anonimization bezig ...");
-		results.forEach(threadpool::execute);
+		try {
+			List<Future<DataEntry>> results = threadpool.invokeAll(todolist);
+		} catch (InterruptedException e) {
+			ErrorHandler.handleException(e);
+		}
+
 		//Wait for everything to finish.
 		while (!threadpool.isShutdown() || !threadpool.isTerminated()) {
 			threadpool.shutdown();
 		}
 		updateStatus(raw_data.size());
 		System.out.println("Anonimisatie is klaar!");
-		return results;
+		this.done = true;
+		return todolist;
 	}
 
 	private DataEntry anonimizeEntry(DataEntry raw_entry) {

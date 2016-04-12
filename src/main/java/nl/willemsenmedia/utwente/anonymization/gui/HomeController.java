@@ -67,7 +67,8 @@ public class HomeController implements Initializable {
 				PopupManager.error("Ongeldige settings", null, "Er is een probleem opgetreden tijdens het valideren van de instellingen: " + (errors_settings.equals("") ? "Onbekende fout." : errors_settings), null);
 			} else {
 				// Het bestand is ingelezen, nu anonimiseren
-				new Thread(AnonimizationController.getInstance(data, settings, Main.OpenPageWithData(settings))).start();
+				AnonimizationController instance = AnonimizationController.getInstance(data, settings, Main.OpenPageWithData(settings));
+				new Thread(instance::call).start();
 			}
 		} else {
 			PopupManager.error("Bestand niet gevonden", null, "Kan het bestand \"" + bestandsPad.getText() + "\" niet vinden. Probeer het opnieuw.", null);

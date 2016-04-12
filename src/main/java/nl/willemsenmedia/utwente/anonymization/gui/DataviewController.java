@@ -1,6 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
-import javafx.concurrent.Task;
+import javafx.beans.property.DoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -16,7 +16,6 @@ import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Martijn on 20-2-2016.
@@ -33,8 +32,8 @@ public class DataviewController implements Initializable {
 	public ScrollPane raw_data_scrollpane;
 	private Settings settings;
 
-	public void bind(Task task) {
-		progressBar.progressProperty().bind(task.progressProperty());
+	public void bind(DoubleProperty doubleProperty) {
+		progressBar.progressProperty().bind(doubleProperty);
 	}
 
 	@Override
@@ -50,11 +49,7 @@ public class DataviewController implements Initializable {
 	}
 
 	public void exportData(ActionEvent event) {
-		try {
-			AnonimizationController.exportData();
-		} catch (ExecutionException | InterruptedException e) {
-			ErrorHandler.handleException(e);
-		}
+		AnonimizationController.exportData();
 	}
 
 	public void setSettings(Settings settings) {
