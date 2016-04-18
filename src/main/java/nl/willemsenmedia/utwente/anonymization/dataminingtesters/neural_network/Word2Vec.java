@@ -23,11 +23,11 @@ import org.deeplearning4j.ui.UiServer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
-import org.nd4j.linalg.io.ClassPathResource;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collection;
 
 /**
@@ -38,7 +38,7 @@ public class Word2Vec {
 
 	public static void mainTxt(String[] args) throws Exception {
 
-		String filePath = new ClassPathResource("raw_sentences.txt").getFile().getAbsolutePath();
+		String filePath = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv").getAbsolutePath();
 
 		log.info("Load & Vectorize Sentences....");
 		// Strip white space before and after for each line
@@ -79,7 +79,7 @@ public class Word2Vec {
 		int numLinesToSkip = 0;
 		String delimiter = ",";
 		RecordReader recordReader = new CSVRecordReader(numLinesToSkip, delimiter);
-		recordReader.initialize(new FileSplit(new ClassPathResource("iris.txt").getFile()));
+		recordReader.initialize(new FileSplit(new File(Word2Vec.class.getClassLoader().getResource("SFU_Review_Corpus.csv").getFile())));
 
 		//Second: the RecordReaderDataSetIterator handles conversion to DataSet objects, ready for use in neural network
 		int labelIndex = 4;     //5 values in each row of the iris.txt CSV: 4 input features followed by an integer label (class) index. Labels are the 5th value (index 4) in each row
@@ -141,6 +141,6 @@ public class Word2Vec {
 	}
 
 	public static void main(String[] args) throws Exception {
-		mainCsv(args);
+		mainTxt(args);
 	}
 }
