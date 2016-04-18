@@ -18,6 +18,8 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -52,25 +54,31 @@ public class Main extends Application {
 			System.setProperty("useGUI", "true");
 		}
 		if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
-			System.setProperty("settings", Main.class.getClassLoader().getResource("default_settings.xml").getFile());
+			System.setProperty("settings", "");//Main.class.getClassLoader().getResource("default_settings.xml").getFile());
 		}
 		if (System.getProperty("technique") == null) {
 			System.err.println("Er moet een techniek bepaald zijn, anders werkt de applicatie niet!");
 			System.err.println();
 			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
 			System.exit(-1);
-		} else if (System.getProperty("settings") != null && (!System.getProperty("settings").endsWith(".xml") || !new File(System.getProperty("settings")).exists())) {
+		} else if ((System.getProperty("settings") != null && !System.getProperty("settings").equals("")) && (!System.getProperty("settings").endsWith(".xml") || !new File(System.getProperty("settings")).exists())) {
 			System.err.println("De settings moeten van een xml-bestand komen en het lijkt erop dat deze niet goed is gedefinieerd. Dit is gespecificeerd: " + System.getProperty("settings"));
 			System.err.println();
 			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
 			System.exit(-1);
 		} else {
-			log.info("Validate settings");
-			Settings settings = validateSettings(new StreamSource(System.getProperty("settings")));
+
 			log.info("Load wordnet");
 			loadWordnet();
 			log.info("Launch");
 			if (System.getProperty("useGUI").equals("false")) {
+				log.info("Validate settings");
+				Settings settings;
+				if (System.getProperty("settings").equals("")) {
+					settings = validateSettings(new StreamSource(Main.class.getClassLoader().getResourceAsStream("default_settings.xml")));
+				} else {
+					settings = validateSettings(new StreamSource(System.getProperty("settings")));
+				}
 				startProgramWithoutGUI(settings);
 				log.info("Done! Now exit.");
 			} else {
@@ -111,8 +119,10 @@ public class Main extends Application {
 			SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 			Schema schema = factory.newSchema(new StreamSource(Main.class.getClassLoader().getResourceAsStream("settings_schema.xsd")));
 			Validator validator = schema.newValidator();
-			validator.validate(settings_file);
-			settings = Settings.createSettingsFromFile(settings_file);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			org.apache.commons.io.IOUtils.copy(settings_file.getInputStream(), baos);
+			validator.validate(new StreamSource(new ByteArrayInputStream(baos.toByteArray())));
+			settings = Settings.createSettingsFromFile(new StreamSource(new ByteArrayInputStream(baos.toByteArray())));
 		} catch (IOException | JAXBException | SAXException e1) {
 			System.err.println("Het bestand met instellingen is niet valide! Gebruikte bestand: " + settings_file.getPublicId());
 			e1.printStackTrace();
@@ -165,7 +175,14 @@ public class Main extends Application {
 		primaryStage.setTitle("Anonimiseer ongestructureerde data");
 		primaryStage.setScene(new Scene(root, 1024, 768));
 		HomeController controller = fxmlLoader.getController();
-		controller.setSettings(Settings.createSettingsFromFile(new StreamSource(System.getProperty("settings"))));
+		log.info("Validate settings");
+		Settings settings;
+		if (System.getProperty("settings").equals("")) {
+			settings = validateSettings(new StreamSource(Main.class.getClassLoader().getResourceAsStream("default_settings.xml")));
+		} else {
+			settings = validateSettings(new StreamSource(System.getProperty("settings")));
+		}
+		controller.setSettings(settings);
 		primaryStage.show();
 	}
 }
