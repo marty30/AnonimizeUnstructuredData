@@ -23,20 +23,18 @@
     </HBox>
     <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" GridPane.rowIndex="2">
         <Tab text="Anonieme data">
-            <!--<TableView fx:id="anonymous_data_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">-->
-            <!--<TableColumn/>-->
-            <!--</TableView>-->
-            <ScrollPane fx:id="anonymous_data_scrollpane">
-                <GridPane fx:id="anonymous_data_pane"/>
-            </ScrollPane>
+            <TableView fx:id="table_anonymous_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+            </TableView>
+            <!--<ScrollPane fx:id="anonymous_data_scrollpane">-->
+            <!--<GridPane fx:id="anonymous_data_pane"/>-->
+            <!--</ScrollPane>-->
         </Tab>
         <Tab text="Reguliere data">
-            <!--<TableView fx:id="raw_data_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">-->
-            <!--<TableColumn/>-->
-            <!--</TableView>-->
-            <ScrollPane fx:id="raw_data_scrollpane">
-                <GridPane fx:id="raw_data_pane"/>
-            </ScrollPane>
+            <TableView fx:id="table_raw_pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+            </TableView>
+            <!--<ScrollPane fx:id="raw_data_scrollpane">-->
+            <!--<GridPane fx:id="raw_data_pane"/>-->
+            <!--</ScrollPane>-->
         </Tab>
     </TabPane>
     <GridPane GridPane.rowIndex="3">
