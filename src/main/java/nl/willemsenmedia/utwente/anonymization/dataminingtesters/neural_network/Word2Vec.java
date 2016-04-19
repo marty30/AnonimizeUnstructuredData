@@ -1,6 +1,8 @@
 package nl.willemsenmedia.utwente.anonymization.dataminingtesters.neural_network;
 
-import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
+import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.records.reader.impl.CSVRecordReader;
 import org.canova.api.split.FileSplit;
@@ -8,6 +10,7 @@ import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.word2vec.VocabWord;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
@@ -30,8 +33,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import static nl.willemsenmedia.utwente.anonymization.data.handling.AnonimizationController.determineTechnique;
 
 /**
  * Created by Martijn on 14-4-2016.
@@ -63,7 +70,7 @@ public class Word2Vec {
 				.tokenizerFactory(t)
 				.build();
 
-		log.info("Fitting Word2Vec model....");
+		log.info("Fitting Raw Word2Vec model....");
 		word2Vec_raw.fit();
 
 		log.info("Building anonymous model....");
@@ -77,7 +84,7 @@ public class Word2Vec {
 				.tokenizerFactory(t)
 				.build();
 
-		log.info("Fitting Word2Vec model....");
+		log.info("Fitting Anonymous Word2Vec model....");
 		word2Vec_anon.fit();
 
 		log.info("Writing word vectors to text file....");
@@ -85,21 +92,34 @@ public class Word2Vec {
 		// Write word vectors
 		WordVectorSerializer.writeWordVectors(word2Vec_raw, "pathToWriteto.txt");
 
-		log.info("Closest Words:");
-		Collection<String> lst_raw = word2Vec_raw.wordsNearest("happy", 50);
-		Collection<String> lst_anon = word2Vec_anon.wordsNearest(StringCleaning.stripPunct(DataModifier.hash("happy")).toLowerCase(), 50);
-		LinkedList<String> raw_list_anonimized = lst_raw.stream().map(item -> StringCleaning.stripPunct(DataModifier.hash(item)).toLowerCase()).collect(Collectors.toCollection(LinkedList::new));
-		//Now compare the two anonymous lists
-		int the_same = 0;
-		for (String item : raw_list_anonimized) {
-			if (lst_anon.contains(item)) {
-				the_same++;
+		Iterator<VocabWord> iter = word2Vec_raw.getVocab().tokens().iterator();
+		List<Double> equalities = new LinkedList<>();
+		int max_words = 100;
+		while (iter.hasNext()) {
+			String word = iter.next().getWord();
+			log.info("Closest Words for " + word + " / " + anonimizeString(word) + ":");
+			Collection<String> lst_raw = word2Vec_raw.wordsNearest(word, 50);
+			Collection<String> lst_anon = word2Vec_anon.wordsNearest(anonimizeString(word), 50);
+			Collection<String> raw_list_anonimized = lst_raw.stream().map(Word2Vec::anonimizeString).collect(Collectors.toCollection(LinkedList::new));
+			//Now compare the two anonymous lists
+			int the_same = 0;
+			for (String item : raw_list_anonimized) {
+				if (lst_anon.contains(item)) {
+					the_same++;
+				}
 			}
+			equalities.add((double) the_same / lst_anon.size());
+			System.out.println("Raw list: " + lst_raw);
+			System.out.println("Raw list anonimized: " + raw_list_anonimized);
+			System.out.println("Anonymous list: " + lst_anon);
+			System.out.println("Equality: " + ((double) the_same / lst_anon.size()));
+			if (equalities.size() > max_words)
+				break;
 		}
-		System.out.println("Raw list: " + lst_raw);
-		System.out.println("Raw list anonimized: " + raw_list_anonimized);
-		System.out.println("Anonymous list: " + lst_anon);
-		System.out.println("Equality: " + ((double) the_same / lst_anon.size()));
+		System.out.println("Best average: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).max().orElse(-1));
+		System.out.println("Worst average: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).min().orElse(-1));
+		System.out.println("Total average of equalities: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).average().orElse(-1));
+		System.out.println("There were " + equalities.stream().filter(d -> d.isNaN()).count() + " words where there was a problem in finding k-nearest neighbors in either the anonymous list or the regular list");
 //		log.info("Plot TSNE....");
 //		BarnesHutTsne tsne_raw = new BarnesHutTsne.Builder()
 //				.setMaxIter(1000)
@@ -125,6 +145,10 @@ public class Word2Vec {
 //		word2Vec_anon.lookupTable().plotVocab(tsne_anon);
 //		UiServer server = UiServer.getInstance();
 //		System.out.println("Started on port " + server.getPort());
+	}
+
+	private static String anonimizeString(String word) {
+		return StringCleaning.stripPunct(determineTechnique().anonymize(new DataEntry(null, new DataAttribute(DataType.UNSTRUCTURED, word)), null).getDataAttributes().get(0).getData()).toLowerCase();
 	}
 
 	public static void mainCsv(String[] args) throws Exception {
