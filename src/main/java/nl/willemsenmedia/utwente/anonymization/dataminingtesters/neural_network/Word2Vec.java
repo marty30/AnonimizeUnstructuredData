@@ -9,7 +9,6 @@ import org.canova.api.split.FileSplit;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.word2vec.VocabWord;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -47,9 +46,10 @@ public class Word2Vec {
 	private static Logger log = LoggerFactory.getLogger(Word2Vec.class);
 
 	public static void mainTxt(String[] args) throws Exception {
-
-		String filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv").getAbsolutePath();
-		String filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv").getAbsolutePath();
+		// Config
+		int max_words_for_testing = 100;
+		File filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_preprocessed.csv");
+		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv");
 
 		log.info("Load & Vectorize Sentences....");
 		// Strip white space before and after for each line
@@ -89,12 +89,11 @@ public class Word2Vec {
 
 		log.info("Writing word vectors to text file....");
 
-		// Write word vectors
-		WordVectorSerializer.writeWordVectors(word2Vec_raw, "pathToWriteto.txt");
+		// Write word vectors (uncomment the next line to write the word-vector to a file)
+//		WordVectorSerializer.writeWordVectors(word2Vec_raw, "pathToWriteto.txt");
 
 		Iterator<VocabWord> iter = word2Vec_raw.getVocab().tokens().iterator();
 		List<Double> equalities = new LinkedList<>();
-		int max_words = 100;
 		while (iter.hasNext()) {
 			String word = iter.next().getWord();
 			log.info("Closest Words for " + word + " / " + anonimizeString(word) + ":");
@@ -113,36 +112,13 @@ public class Word2Vec {
 			System.out.println("Raw list anonimized: " + raw_list_anonimized);
 			System.out.println("Anonymous list: " + lst_anon);
 			System.out.println("Equality: " + ((double) the_same / lst_anon.size()));
-			if (equalities.size() > max_words)
+			if (equalities.size() > max_words_for_testing && max_words_for_testing != -1)
 				break;
 		}
 		System.out.println("Best average: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).max().orElse(-1));
 		System.out.println("Worst average: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).min().orElse(-1));
 		System.out.println("Total average of equalities: " + equalities.stream().filter(d -> !d.isNaN()).mapToDouble(a -> a).average().orElse(-1));
 		System.out.println("There were " + equalities.stream().filter(d -> d.isNaN()).count() + " words where there was a problem in finding k-nearest neighbors in either the anonymous list or the regular list");
-//		log.info("Plot TSNE....");
-//		BarnesHutTsne tsne_raw = new BarnesHutTsne.Builder()
-//				.setMaxIter(1000)
-//				.stopLyingIteration(250)
-//				.learningRate(500)
-//				.useAdaGrad(false)
-//				.theta(0.5)
-//				.setMomentum(0.5)
-//				.normalize(true)
-//				.usePca(false)
-//				.build();
-//		BarnesHutTsne tsne_anon = new BarnesHutTsne.Builder()
-//				.setMaxIter(1000)
-//				.stopLyingIteration(250)
-//				.learningRate(500)
-//				.useAdaGrad(false)
-//				.theta(0.5)
-//				.setMomentum(0.5)
-//				.normalize(true)
-//				.usePca(false)
-//				.build();
-//		word2Vec_raw.lookupTable().plotVocab(tsne_raw);
-//		word2Vec_anon.lookupTable().plotVocab(tsne_anon);
 //		UiServer server = UiServer.getInstance();
 //		System.out.println("Started on port " + server.getPort());
 	}
