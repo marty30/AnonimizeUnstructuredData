@@ -1,5 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization.dataminingtesters.neural_network;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataModifier;
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.records.reader.impl.CSVRecordReader;
 import org.canova.api.split.FileSplit;
@@ -17,9 +18,9 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
 import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.StringCleaning;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
-import org.deeplearning4j.ui.UiServer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 /**
  * Created by Martijn on 14-4-2016.
@@ -38,39 +41,90 @@ public class Word2Vec {
 
 	public static void mainTxt(String[] args) throws Exception {
 
-		String filePath = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv").getAbsolutePath();
+		String filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv").getAbsolutePath();
+		String filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv").getAbsolutePath();
 
 		log.info("Load & Vectorize Sentences....");
 		// Strip white space before and after for each line
-		SentenceIterator iter = new BasicLineIterator(filePath);
+		SentenceIterator iter_raw = new BasicLineIterator(filePath_raw);
+		SentenceIterator iter_anon = new BasicLineIterator(filePath_anon);
 		// Split on white spaces in the line to get words
 		TokenizerFactory t = new DefaultTokenizerFactory();
 		t.setTokenPreProcessor(new CommonPreprocessor());
 
-		log.info("Building model....");
-		org.deeplearning4j.models.word2vec.Word2Vec vec = new org.deeplearning4j.models.word2vec.Word2Vec.Builder()
+		log.info("Building raw model....");
+		org.deeplearning4j.models.word2vec.Word2Vec word2Vec_raw = new org.deeplearning4j.models.word2vec.Word2Vec.Builder()
 				.minWordFrequency(5)
 				.iterations(1)
 				.layerSize(100)
 				.seed(42)
 				.windowSize(5)
-				.iterate(iter)
+				.iterate(iter_raw)
 				.tokenizerFactory(t)
 				.build();
 
 		log.info("Fitting Word2Vec model....");
-		vec.fit();
+		word2Vec_raw.fit();
+
+		log.info("Building anonymous model....");
+		org.deeplearning4j.models.word2vec.Word2Vec word2Vec_anon = new org.deeplearning4j.models.word2vec.Word2Vec.Builder()
+				.minWordFrequency(5)
+				.iterations(1)
+				.layerSize(100)
+				.seed(42)
+				.windowSize(5)
+				.iterate(iter_anon)
+				.tokenizerFactory(t)
+				.build();
+
+		log.info("Fitting Word2Vec model....");
+		word2Vec_anon.fit();
 
 		log.info("Writing word vectors to text file....");
 
 		// Write word vectors
-		WordVectorSerializer.writeWordVectors(vec, "pathToWriteto.txt");
+		WordVectorSerializer.writeWordVectors(word2Vec_raw, "pathToWriteto.txt");
 
 		log.info("Closest Words:");
-		Collection<String> lst = vec.wordsNearest("day", 10);
-		System.out.println(lst);
-		UiServer server = UiServer.getInstance();
-		System.out.println("Started on port " + server.getPort());
+		Collection<String> lst_raw = word2Vec_raw.wordsNearest("happy", 50);
+		Collection<String> lst_anon = word2Vec_anon.wordsNearest(StringCleaning.stripPunct(DataModifier.hash("happy")).toLowerCase(), 50);
+		LinkedList<String> raw_list_anonimized = lst_raw.stream().map(item -> StringCleaning.stripPunct(DataModifier.hash(item)).toLowerCase()).collect(Collectors.toCollection(LinkedList::new));
+		//Now compare the two anonymous lists
+		int the_same = 0;
+		for (String item : raw_list_anonimized) {
+			if (lst_anon.contains(item)) {
+				the_same++;
+			}
+		}
+		System.out.println("Raw list: " + lst_raw);
+		System.out.println("Raw list anonimized: " + raw_list_anonimized);
+		System.out.println("Anonymous list: " + lst_anon);
+		System.out.println("Equality: " + ((double) the_same / lst_anon.size()));
+//		log.info("Plot TSNE....");
+//		BarnesHutTsne tsne_raw = new BarnesHutTsne.Builder()
+//				.setMaxIter(1000)
+//				.stopLyingIteration(250)
+//				.learningRate(500)
+//				.useAdaGrad(false)
+//				.theta(0.5)
+//				.setMomentum(0.5)
+//				.normalize(true)
+//				.usePca(false)
+//				.build();
+//		BarnesHutTsne tsne_anon = new BarnesHutTsne.Builder()
+//				.setMaxIter(1000)
+//				.stopLyingIteration(250)
+//				.learningRate(500)
+//				.useAdaGrad(false)
+//				.theta(0.5)
+//				.setMomentum(0.5)
+//				.normalize(true)
+//				.usePca(false)
+//				.build();
+//		word2Vec_raw.lookupTable().plotVocab(tsne_raw);
+//		word2Vec_anon.lookupTable().plotVocab(tsne_anon);
+//		UiServer server = UiServer.getInstance();
+//		System.out.println("Started on port " + server.getPort());
 	}
 
 	public static void mainCsv(String[] args) throws Exception {
