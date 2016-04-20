@@ -179,6 +179,14 @@ public class Settings {
 		protected Boolean overwritable;
 		private Property view;
 
+		public Setting() {
+		}
+
+		public Setting(String name, String value) {
+			setName(name);
+			setValue(value);
+		}
+
 		/**
 		 * Gets the value of the content property.
 		 * <p>

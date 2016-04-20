@@ -1,10 +1,16 @@
 package nl.willemsenmedia.utwente.anonymization.dataminingtesters.svm;
 
 import libsvm.*;
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
+import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
+import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
+import javax.xml.bind.JAXBException;
 import java.io.*;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Martijn on 19-4-2016.
@@ -30,18 +36,60 @@ public class SVMClassifier {
 		param.weight = new double[0];
 	}
 
-	public static File convertCSVToLibsvm(File inputfile) throws FileNotFoundException {
-		File libsvm = new File(inputfile.getAbsolutePath().substring(inputfile.getAbsolutePath().lastIndexOf("/")) + ".libsvm");
+	public static File convertCSVToLibsvm(File inputfile) throws IOException, JAXBException {
+		File libsvm = new File(inputfile.getAbsolutePath().substring(0, inputfile.getAbsolutePath().lastIndexOf(".")) + ".libsvm");
+		if (!libsvm.exists()) libsvm.createNewFile();
 		PrintStream out = new PrintStream(libsvm);
 		//read everything from csv
-
+		ArrayList<DataAttribute> headers = new ArrayList<>();
+		headers.add(new DataAttribute(DataType.UNSTRUCTURED, ""));
+		headers.add(new DataAttribute(DataType.CLASS, ""));
+		Settings settings = Settings.getDefault();
+		settings.getSettingsMap().put("bevat_kopteksten", new Settings.Setting("bevat_kopteksten", "true"));
+		settings.getSettingsMap().get("beginrij").setValue("" + Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1);
+		List<DataEntry> data = FileReader.readFile(inputfile, settings, headers);
+		//Start construction of vocabulary
+		Vocabulary voc = new Vocabulary();
 		// tokenize each entry
-
-		// create vocabulary
-
+		if (data != null) {
+			data.forEach(voc::addData);
+		} else {
+			throw new FileNotFoundException(inputfile.getAbsolutePath() + " heeft geen data, of kon niet gelezen worden.");
+		}
+		// find wordcount for all words in the vocabulary for each entry
+		List<Map<Integer, Integer>> listOfWordcounts = data.stream().map(dataEntry -> createWordcountMap(voc, dataEntry)).collect(Collectors.toList());
 		// write each entry to the output
-
+		for (int i = 0; i < listOfWordcounts.size(); i++) {
+			DataEntry dataEntry = data.get(i);
+			Map<Integer, Integer> wordMap = listOfWordcounts.get(i);
+			int entryClass = voc.getClassIndex(dataEntry.getDataAttributes().stream().filter(dataAttribute -> dataAttribute.getDataType().equals(DataType.CLASS)).findFirst().get().getData());
+			out.print(entryClass);
+			for (Map.Entry<Integer, Integer> entry : wordMap.entrySet()) {
+				out.print(" " + entry.getKey() + ":" + entry.getValue());
+			}
+			out.print("\r\n");
+			out.flush();
+		}
 		return libsvm;
+	}
+
+	private static Map<Integer, Integer> createWordcountMap(Vocabulary voc, DataEntry dataEntry) {
+		Map<Integer, Integer> map = new HashMap<>();
+		for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
+			if (!dataAttribute.getDataType().equals(DataType.CLASS)) {
+				StringTokenizer tokenizer = new StringTokenizer(dataAttribute.getData());
+				while (tokenizer.hasMoreTokens()) {
+					String token = tokenizer.nextToken();
+					int key = voc.getIndex(token);
+					if (map.containsKey(key)) {
+						map.put(key, map.get(key) + 1);
+					} else {
+						map.put(key, 1);
+					}
+				}
+			}
+		}
+		return map;
 	}
 
 	private static double atof(String s) {
@@ -57,11 +105,11 @@ public class SVMClassifier {
 		return Integer.parseInt(s);
 	}
 
-	public static void main(String[] args) throws IOException {
-		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\test.libsvm"));
+	public static void main(String[] args) throws IOException, JAXBException {
+		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\simple_data.csv"));
 	}
 
-	private void run(File inputfile) throws IOException {
+	private void run(File inputfile) throws IOException, JAXBException {
 		if (inputfile.getAbsolutePath().endsWith(".csv")) {
 			inputfile = convertCSVToLibsvm(inputfile);
 		}
@@ -87,9 +135,9 @@ public class SVMClassifier {
 
 	public svm_file read_file(File input_file_name) throws IOException {
 		svm_problem prob;
-		BufferedReader fp = new BufferedReader(new FileReader(input_file_name));
-		Vector<Double> vy = new Vector<Double>();
-		Vector<svm_node[]> vx = new Vector<svm_node[]>();
+		BufferedReader fp = new BufferedReader(new java.io.FileReader(input_file_name));
+		Vector<Double> vy = new Vector<>();
+		Vector<svm_node[]> vx = new Vector<>();
 		int max_index = 0;
 
 		while (true) {
@@ -144,6 +192,35 @@ public class SVMClassifier {
 
 
 		return prob;
+	}
+
+	private static class Vocabulary {
+		LinkedList<String> voc = new LinkedList<>();
+		LinkedList<String> classes = new LinkedList<>();
+
+		public void addData(DataEntry dataEntry) {
+			dataEntry.getDataAttributes().forEach(this::addData);
+		}
+
+		public void addData(DataAttribute dataAttribute) {
+			if (!dataAttribute.getDataType().equals(DataType.CLASS)) {
+				StringTokenizer tokenizer = new StringTokenizer(dataAttribute.getData(), " \t\n\r\f,;");
+				while (tokenizer.hasMoreTokens()) {
+					String token = tokenizer.nextToken();
+					if (!voc.contains(token)) voc.add(token);
+				}
+			} else {
+				if (!classes.contains(dataAttribute.getData())) classes.add(dataAttribute.getData());
+			}
+		}
+
+		public int getIndex(String token) {
+			return voc.indexOf(token);
+		}
+
+		public int getClassIndex(String data) {
+			return classes.indexOf(data);
+		}
 	}
 
 	private class svm_file extends svm_problem {
