@@ -27,7 +27,7 @@ public class DataModifier {
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 			digest.reset();
-			return bin2base64(digest.digest((SALT + sanitize(unhashedString) + SALT).trim().getBytes("UTF-8")));
+			return bin2hex(digest.digest((SALT + sanitize(unhashedString) + SALT).trim().getBytes("UTF-8")));
 		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e1) {
 			ErrorHandler.handleException(e1);
 			e1.printStackTrace();

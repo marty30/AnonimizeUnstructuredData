@@ -4,6 +4,7 @@ import libsvm.*;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.Vocabulary;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
@@ -57,7 +58,7 @@ public class SVMClassifier {
 			throw new FileNotFoundException(inputfile.getAbsolutePath() + " heeft geen data, of kon niet gelezen worden.");
 		}
 		// find wordcount for all words in the vocabulary for each entry
-		List<Map<Integer, Integer>> listOfWordcounts = data.stream().map(dataEntry -> createWordcountMap(voc, dataEntry)).collect(Collectors.toList());
+		List<Map<Integer, Integer>> listOfWordcounts = data.stream().map(dataEntry -> Vocabulary.createWordcountMap(voc, dataEntry)).collect(Collectors.toList());
 		// write each entry to the output
 		for (int i = 0; i < listOfWordcounts.size(); i++) {
 			DataEntry dataEntry = data.get(i);
@@ -71,25 +72,6 @@ public class SVMClassifier {
 			out.flush();
 		}
 		return libsvm;
-	}
-
-	private static Map<Integer, Integer> createWordcountMap(Vocabulary voc, DataEntry dataEntry) {
-		Map<Integer, Integer> map = new HashMap<>();
-		for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
-			if (!dataAttribute.getDataType().equals(DataType.CLASS)) {
-				StringTokenizer tokenizer = new StringTokenizer(dataAttribute.getData());
-				while (tokenizer.hasMoreTokens()) {
-					String token = tokenizer.nextToken();
-					int key = voc.getIndex(token);
-					if (map.containsKey(key)) {
-						map.put(key, map.get(key) + 1);
-					} else {
-						map.put(key, 1);
-					}
-				}
-			}
-		}
-		return map;
 	}
 
 	private static double atof(String s) {
@@ -106,7 +88,7 @@ public class SVMClassifier {
 	}
 
 	public static void main(String[] args) throws IOException, JAXBException {
-		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\simple_data.csv"));
+		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv"));
 	}
 
 	private void run(File inputfile) throws IOException, JAXBException {
@@ -133,8 +115,13 @@ public class SVMClassifier {
 		System.out.println("Printed log to: " + log.getAbsolutePath());
 	}
 
+	/**
+	 * Reads the libsvm-file into a vx, vy and max_index
+	 * @param input_file_name the libsvm file
+	 * @return a svm_file object with a vx, vy and max_index
+	 * @throws IOException
+	 */
 	public svm_file read_file(File input_file_name) throws IOException {
-		svm_problem prob;
 		BufferedReader fp = new BufferedReader(new java.io.FileReader(input_file_name));
 		Vector<Double> vy = new Vector<>();
 		Vector<svm_node[]> vx = new Vector<>();
@@ -162,6 +149,11 @@ public class SVMClassifier {
 		return new svm_file(vy, vx, max_index);
 	}
 
+	/**
+	 * see libsvm.svm_train.read_problem()
+	 * @param svm_file the file that contains a vx, vy and max_index
+	 * @return a svm_problem that can be used for training and testing.
+	 */
 	public svm_problem build_problem(svm_file svm_file) {
 		Vector<Double> vy = svm_file.getVy();
 		Vector<svm_node[]> vx = svm_file.getVx();
@@ -194,36 +186,7 @@ public class SVMClassifier {
 		return prob;
 	}
 
-	private static class Vocabulary {
-		LinkedList<String> voc = new LinkedList<>();
-		LinkedList<String> classes = new LinkedList<>();
-
-		public void addData(DataEntry dataEntry) {
-			dataEntry.getDataAttributes().forEach(this::addData);
-		}
-
-		public void addData(DataAttribute dataAttribute) {
-			if (!dataAttribute.getDataType().equals(DataType.CLASS)) {
-				StringTokenizer tokenizer = new StringTokenizer(dataAttribute.getData(), " \t\n\r\f,;");
-				while (tokenizer.hasMoreTokens()) {
-					String token = tokenizer.nextToken();
-					if (!voc.contains(token)) voc.add(token);
-				}
-			} else {
-				if (!classes.contains(dataAttribute.getData())) classes.add(dataAttribute.getData());
-			}
-		}
-
-		public int getIndex(String token) {
-			return voc.indexOf(token);
-		}
-
-		public int getClassIndex(String data) {
-			return classes.indexOf(data);
-		}
-	}
-
-	private class svm_file extends svm_problem {
+	private class svm_file {
 		private final Vector<Double> vy;
 		private final Vector<svm_node[]> vx;
 		private final int max_index;
