@@ -9,6 +9,8 @@ import nl.willemsenmedia.utwente.anonymization.gui.DataviewController;
 import nl.willemsenmedia.utwente.anonymization.gui.ErrorHandler;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.concurrent.*;
  */
 public class AnonimizationController implements Callable<List<Callable<DataEntry>>> {
 	private static AnonimizationController instance;
+	private static AnonymizationTechnique definedTechnique;
 	private final List<DataEntry> raw_data;
 	private final DataEntry[] anonimous_data;
 	private final ExecutorService threadpool;
@@ -27,11 +30,13 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 	private DoubleProperty progressProperty = new SimpleDoubleProperty();
 	private boolean done = false;
 
-	private AnonimizationController(List<DataEntry> raw_data, Settings settings, DataviewController dataviewController) {
+	private AnonimizationController(List<DataEntry> raw_data, Settings settings, DataviewController dataviewController, @Nullable AnonymizationTechnique technique) {
 		this.raw_data = raw_data;
 		this.settings = settings;
 		this.dataviewController = dataviewController;
 		this.anonimous_data = new DataEntry[raw_data.size()];
+		if (technique != null)
+			setAnonyzationTechnique(technique);
 		threadpool = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), r -> {
 			Thread t = new Thread(r);
 			t.setDaemon(true);
@@ -60,35 +65,51 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 	}
 
 	public static AnonymizationTechnique determineTechnique() {
-		if (System.getProperty("technique") == null) {
-			System.setProperty("technique", "");
+		if (definedTechnique == null) {
+			if (System.getProperty("technique") == null) {
+				System.setProperty("technique", "");
+			}
+			switch (System.getProperty("technique")) {
+				case "HashSentence":
+					return new HashSentence();
+				case "HashAll":
+					return new HashAll();
+				case "SmartHashing":
+					return new SmartHashing();
+				case "GeneralizeOrSuppress":
+				case "k-anonymity":
+					return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
+				default:
+					//Do nothing with the raw_data
+					return new AnonymizationTechnique() {
+						@Override
+						public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+							DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
+							dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
+							return newDataEntry;
+						}
+					};
+			}
 		}
-		switch (System.getProperty("technique")) {
-			case "HashSentence":
-				return new HashSentence();
-			case "HashAll":
-				return new HashAll();
-			case "SmartHashing":
-				return new SmartHashing();
-			case "GeneralizeOrSuppress":
-			case "k-anonymity":
-				return new GeneralizeOrSuppress(Integer.parseInt(System.getProperty("k")));
-			default:
-				//Do nothing with the raw_data
-				return new AnonymizationTechnique() {
-					@Override
-					public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
-						DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
-						dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
-						return newDataEntry;
-					}
-				};
-		}
+		return definedTechnique;
+	}
+
+	/**
+	 * This method can be used to set an anonymization technique that was not specified in @see{AnonimizationController#detemineTechnique()}
+	 *
+	 * @param technique The technique that should be used.
+	 */
+	public static void setAnonyzationTechnique(@Nonnull AnonymizationTechnique technique) {
+		definedTechnique = technique;
 	}
 
 	public static AnonimizationController getInstance(List<DataEntry> raw_data, Settings settings, DataviewController dataviewController) {
-		if (instance == null || !instance.raw_data.equals(raw_data) || !instance.settings.equals(settings) || !instance.dataviewController.equals(dataviewController))
-			instance = new AnonimizationController(raw_data, settings, dataviewController);
+		return getInstance(raw_data, settings, dataviewController, null);
+	}
+
+	public static AnonimizationController getInstance(List<DataEntry> raw_data, Settings settings, DataviewController dataviewController, @Nullable AnonymizationTechnique technique) {
+		if (instance == null || !instance.raw_data.equals(raw_data) || !instance.settings.equals(settings) || !instance.dataviewController.equals(dataviewController) || !definedTechnique.equals(technique))
+			instance = new AnonimizationController(raw_data, settings, dataviewController, technique);
 		return instance;
 	}
 
