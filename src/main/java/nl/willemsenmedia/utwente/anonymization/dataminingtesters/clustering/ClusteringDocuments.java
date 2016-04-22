@@ -13,10 +13,12 @@ package nl.willemsenmedia.utwente.anonymization.dataminingtesters.clustering;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.core.*;
+import org.carrot2.output.metrics.PrecisionRecallMetric;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
@@ -60,21 +62,39 @@ public class ClusteringDocuments {
 		final ArrayList<Document> documents_raw = new ArrayList<>();
 		final ArrayList<Document> documents_anon = new ArrayList<>();
 
-		List<DataEntry> dataEntries_raw = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), Settings.getDefault(), null);
-		List<DataEntry> dataEntries_anon = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv"), Settings.getDefault(), null);
+		ArrayList<DataAttribute> headers = new ArrayList<>();
+		headers.add(new DataAttribute(DataType.UNSTRUCTURED, ""));
+		headers.add(new DataAttribute(DataType.CLASS, ""));
+		Settings settings = Settings.getDefault();
+		settings.getSettingsMap().put("bevat_kopteksten", new Settings.Setting("bevat_kopteksten", "true"));
+		settings.getSettingsMap().get("beginrij").setValue("" + Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1);
+		List<DataEntry> dataEntries_raw = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), settings, headers);
+		List<DataEntry> dataEntries_anon = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv"), settings, headers);
 		for (DataEntry dataEntry : dataEntries_raw) {
 			StringBuilder content = new StringBuilder();
+			LinkedList<String> partition = new LinkedList<>();
 			for (DataAttribute atrr : dataEntry.getDataAttributes()) {
-				content.append(atrr.getData());
+				if (!atrr.getDataType().equals(DataType.CLASS))
+					content.append(atrr.getData());
+				else
+					partition.add(atrr.getData());
 			}
-			documents_raw.add(new Document(dataEntry.getHeaders().get(0).getData(), content.toString()));
+			Document doc = new Document(dataEntry.getHeaders().get(0).getData(), content.toString());
+			doc.setField(Document.PARTITIONS, partition);
+			documents_raw.add(doc);
 		}
 		for (DataEntry dataEntry : dataEntries_anon) {
 			StringBuilder content = new StringBuilder();
+			LinkedList<String> partition = new LinkedList<>();
 			for (DataAttribute atrr : dataEntry.getDataAttributes()) {
-				content.append(atrr.getData());
+				if (!atrr.getDataType().equals(DataType.CLASS))
+					content.append(atrr.getData());
+				else
+					partition.add(atrr.getData());
 			}
-			documents_anon.add(new Document(dataEntry.getHeaders().get(0).getData(), content.toString()));
+			Document doc = new Document(dataEntry.getHeaders().get(0).getData(), content.toString());
+			doc.setField(Document.PARTITIONS, partition);
+			documents_anon.add(doc);
 		}
 
 		/* A controller to manage the processing pipeline. */
@@ -83,8 +103,30 @@ public class ClusteringDocuments {
 		/* Perform clustering by topic using the Lingo algorithm.*/
 		final ProcessingResult RawByTopicClusters = controller.process(documents_raw, null, LingoClusteringAlgorithm.class);
 		final List<Cluster> RawClustersByTopic = RawByTopicClusters.getClusters();
+		final PrecisionRecallMetric RawMetric = new PrecisionRecallMetric();
+		RawMetric.clusters = RawClustersByTopic;
+		RawMetric.documents = documents_raw;
+		RawMetric.calculate();
+		//Print results from raw clustering
+		System.out.println("Clustering result of raw documents");
+		System.out.println("There are "+RawMetric.clusters.size()+" clusters from "+ RawMetric.documents.size()+" documents. \r\n" +
+				"Precision: "+RawMetric.weightedAveragePrecision+"\r\n" +
+				"Recall: "+RawMetric.weightedAverageRecall+"\r\n" +
+				"F-measure: "+RawMetric.weightedAverageFMeasure+"\r\n");
+
 		final ProcessingResult AnonByTopicClusters = controller.process(documents_anon, null, LingoClusteringAlgorithm.class);
 		final List<Cluster> AnonClustersByTopic = AnonByTopicClusters.getClusters();
+		final PrecisionRecallMetric AnonMetric = new PrecisionRecallMetric();
+		AnonMetric.clusters = AnonClustersByTopic;
+		AnonMetric.documents = documents_anon;
+		AnonMetric.calculate();
+		//Print results from anonymous clustering
+		System.out.println("Clustering result of anonymous documents");
+		System.out.println("There are "+AnonMetric.clusters.size()+" clusters from "+ AnonMetric.documents.size()+" documents. \r\n" +
+				"Precision: "+AnonMetric.weightedAveragePrecision+"\r\n" +
+				"Recall: "+AnonMetric.weightedAverageRecall+"\r\n" +
+				"F-measure: "+AnonMetric.weightedAverageFMeasure+"\r\n");
+
 
 		//Now compare the two sets of clusters
 		List<Double> percentages_best_possible = new LinkedList<>();
