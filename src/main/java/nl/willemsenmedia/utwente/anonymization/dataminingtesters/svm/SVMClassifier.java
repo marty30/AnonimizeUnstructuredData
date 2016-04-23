@@ -58,7 +58,7 @@ public class SVMClassifier {
 			throw new FileNotFoundException(inputfile.getAbsolutePath() + " heeft geen data, of kon niet gelezen worden.");
 		}
 		// find wordcount for all words in the vocabulary for each entry
-		List<Map<Integer, Integer>> listOfWordcounts = data.stream().map(dataEntry -> Vocabulary.createWordcountMap(voc, dataEntry)).collect(Collectors.toList());
+		List<Map<Integer, Integer>> listOfWordcounts = data.stream().map(dataEntry -> Vocabulary.createCleanWordcountMap(voc, dataEntry)).collect(Collectors.toList());
 		// write each entry to the output
 		for (int i = 0; i < listOfWordcounts.size(); i++) {
 			DataEntry dataEntry = data.get(i);

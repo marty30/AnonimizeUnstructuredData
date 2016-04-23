@@ -47,8 +47,8 @@ public class Main extends Application {
 		System.setProperty("glass.accessible.force", "false");
 		//Set language (for wordnet and stopwords etc.) if it is not yet set
 		if (System.getProperty("lang") == null || System.getProperty("lang").equals("")) {
-//			System.setProperty("lang", "en");
-			System.setProperty("lang", "nl");
+			System.setProperty("lang", "en");
+//			System.setProperty("lang", "nl");
 		}
 		if (System.getProperty("useGUI") == null || System.getProperty("useGUI").equals("") || System.getProperty("useGUI").equals("true")) {
 			System.setProperty("useGUI", "true");

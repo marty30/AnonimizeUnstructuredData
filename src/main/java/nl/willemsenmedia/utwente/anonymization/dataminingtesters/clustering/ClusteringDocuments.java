@@ -14,6 +14,7 @@ package nl.willemsenmedia.utwente.anonymization.dataminingtesters.clustering;
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.DefaultEntry;
 import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
@@ -109,10 +110,10 @@ public class ClusteringDocuments {
 		RawMetric.calculate();
 		//Print results from raw clustering
 		System.out.println("Clustering result of raw documents");
-		System.out.println("There are "+RawMetric.clusters.size()+" clusters from "+ RawMetric.documents.size()+" documents. \r\n" +
-				"Precision: "+RawMetric.weightedAveragePrecision+"\r\n" +
-				"Recall: "+RawMetric.weightedAverageRecall+"\r\n" +
-				"F-measure: "+RawMetric.weightedAverageFMeasure+"\r\n");
+		System.out.println("There are " + RawMetric.clusters.size() + " clusters from " + RawMetric.documents.size() + " documents. \r\n" +
+				"Precision: " + RawMetric.weightedAveragePrecision + "\r\n" +
+				"Recall: " + RawMetric.weightedAverageRecall + "\r\n" +
+				"F-measure: " + RawMetric.weightedAverageFMeasure + "\r\n");
 
 		final ProcessingResult AnonByTopicClusters = controller.process(documents_anon, null, LingoClusteringAlgorithm.class);
 		final List<Cluster> AnonClustersByTopic = AnonByTopicClusters.getClusters();
@@ -122,10 +123,10 @@ public class ClusteringDocuments {
 		AnonMetric.calculate();
 		//Print results from anonymous clustering
 		System.out.println("Clustering result of anonymous documents");
-		System.out.println("There are "+AnonMetric.clusters.size()+" clusters from "+ AnonMetric.documents.size()+" documents. \r\n" +
-				"Precision: "+AnonMetric.weightedAveragePrecision+"\r\n" +
-				"Recall: "+AnonMetric.weightedAverageRecall+"\r\n" +
-				"F-measure: "+AnonMetric.weightedAverageFMeasure+"\r\n");
+		System.out.println("There are " + AnonMetric.clusters.size() + " clusters from " + AnonMetric.documents.size() + " documents. \r\n" +
+				"Precision: " + AnonMetric.weightedAveragePrecision + "\r\n" +
+				"Recall: " + AnonMetric.weightedAverageRecall + "\r\n" +
+				"F-measure: " + AnonMetric.weightedAverageFMeasure + "\r\n");
 
 
 		//Now compare the two sets of clusters
@@ -182,31 +183,7 @@ public class ClusteringDocuments {
 		return result;
 	}
 
-	private static class DefaultEntry<K, V> implements Map.Entry<K, V> {
-		private K key;
-		private V value;
-
-		public DefaultEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public K getKey() {
-			return key;
-		}
-
-		@Override
-		public V getValue() {
-			return value;
-		}
-
-		@Override
-		public V setValue(V value) {
-			return this.value = value;
-		}
-	}
-//			File folder = new File("path to dir");
+	//			File folder = new File("path to dir");
 //			String temp;
 //			try {
 //				for (final File fileEntry : folder.listFiles()) {

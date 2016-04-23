@@ -16,7 +16,7 @@ import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
 public class HashSentence extends AnonymizationTechnique {
 
 	@Override
-	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+	public DataEntry anonymize(DataEntry dataEntry, List<DataEntry> raw_data, Settings settings) {
 		DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {

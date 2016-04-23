@@ -124,7 +124,7 @@ public class Word2Vec {
 	}
 
 	private static String anonimizeString(String word) {
-		return StringCleaning.stripPunct(determineTechnique().anonymize(new DataEntry(null, new DataAttribute(DataType.UNSTRUCTURED, word)), null).getDataAttributes().get(0).getData()).toLowerCase();
+		return StringCleaning.stripPunct(determineTechnique().anonymize(new DataEntry(null, new DataAttribute(DataType.UNSTRUCTURED, word)), null, null).getDataAttributes().get(0).getData()).toLowerCase();
 	}
 
 	public static void mainCsv(String[] args) throws Exception {

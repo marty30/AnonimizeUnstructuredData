@@ -80,6 +80,7 @@ public class DataviewController implements Initializable {
 			table_raw_pane.setItems(table_raw_data);
 			for (DataAttribute dataAttribute : raw_entry.getHeaders()) {
 				TableColumn<ObservableList<String>, String> col = new TableColumn<>(dataAttribute.getData());
+				col.setStyle("-fx-alignment:top-left");
 				col.setCellValueFactory(param -> new ReadOnlyStringWrapper((String) param.getValue().get(raw_entry.getHeaders().indexOf(dataAttribute))));
 				table_raw_pane.getColumns().add(col);
 			}
@@ -95,6 +96,7 @@ public class DataviewController implements Initializable {
 			table_anonymous_pane.setItems(table_anonymous_data);
 			for (DataAttribute dataAttribute : anonymous_entry.getHeaders()) {
 				TableColumn<ObservableList<String>, String> col = new TableColumn<>(dataAttribute.getData());
+				col.setStyle("-fx-alignment:top-left");
 				col.setCellValueFactory(param -> new ReadOnlyStringWrapper((String) param.getValue().get(anonymous_entry.getHeaders().indexOf(dataAttribute))));
 				table_anonymous_pane.getColumns().add(col);
 			}

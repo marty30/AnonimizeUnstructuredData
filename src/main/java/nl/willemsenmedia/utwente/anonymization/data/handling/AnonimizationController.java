@@ -83,7 +83,7 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 					//Do nothing with the raw_data
 					return new AnonymizationTechnique() {
 						@Override
-						public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+						public DataEntry anonymize(DataEntry dataEntry, List<DataEntry> raw_data, Settings settings) {
 							DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
 							dataEntry.getDataAttributes().stream().forEach((dataAttribute) -> newDataEntry.addDataAttribute(dataAttribute.clone()));
 							return newDataEntry;
@@ -131,11 +131,11 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 		FileWriter.exportDataToCSV(Arrays.asList(instance.anonimous_data), FileWriter.createFile(".csv"));
 	}
 
-	public DataEntry[] getAnonimous_data() {
+	public DataEntry[] getAnonimousData() {
 		return anonimous_data;
 	}
 
-	public List<DataEntry> getRaw_data() {
+	public List<DataEntry> getRawData() {
 		return raw_data;
 	}
 
@@ -181,7 +181,7 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 		List<Callable<DataEntry>> todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
 			todolist.add(() -> {
-				DataEntry anonimous_entry = anonimizeEntry(raw_entry);
+				DataEntry anonimous_entry = anonimizeEntry(raw_entry, raw_data);
 				if (!System.getProperty("useGUI").equals("false"))
 					pushEntryToView(raw_entry, anonimous_entry);
 				return anonimous_entry;
@@ -205,10 +205,10 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 		return todolist;
 	}
 
-	private DataEntry anonimizeEntry(DataEntry raw_entry) {
-		int index = raw_data.indexOf(raw_entry);
+	private DataEntry anonimizeEntry(DataEntry raw_entry, List<DataEntry> raw_data) {
+		int index = this.raw_data.indexOf(raw_entry);
 		determineTechnique().doPreProcessing(raw_entry, settings);
-		DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, settings);
+		DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, raw_data, settings);
 		anonimous_data[index] = anonimous_entry;
 
 		updateStatus(index);

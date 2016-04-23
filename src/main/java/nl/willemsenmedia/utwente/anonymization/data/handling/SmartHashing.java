@@ -2,13 +2,17 @@ package nl.willemsenmedia.utwente.anonymization.data.handling;
 
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
+import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.Vocabulary;
 import nl.willemsenmedia.utwente.anonymization.nlp.NLPHelper;
 import nl.willemsenmedia.utwente.anonymization.nlp.ODWNReader;
 import nl.willemsenmedia.utwente.anonymization.nlp.OpenNLPFactory;
+import nl.willemsenmedia.utwente.anonymization.nlp.POS;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static nl.willemsenmedia.utwente.anonymization.data.DataModifier.hash;
 
@@ -22,10 +26,10 @@ public class SmartHashing extends AnonymizationTechnique {
 	private Settings settings;
 
 	@Override
-	public DataEntry anonymize(DataEntry dataEntry, Settings settings) {
+	public DataEntry anonymize(DataEntry dataEntry, List<DataEntry> raw_data, Settings settings) {
 		this.settings = settings;
 		DataEntry newDataEntry = new DataEntry(dataEntry.getHeaders());
-		determineImportantWords(dataEntry);
+		determineImportantWords(dataEntry, raw_data);
 		List<DataAttribute> attributes = dataEntry.getDataAttributes();
 		for (DataAttribute attribute : attributes) {
 			DataAttribute newDataAttribute = attribute.clone();
@@ -51,33 +55,74 @@ public class SmartHashing extends AnonymizationTechnique {
 		return newDataEntry;
 	}
 
-	private void determineImportantWords(DataEntry dataEntry) {
+	private void determineImportantWords(DataEntry dataEntry, List<DataEntry> raw_data) {
+		//Td -idf
+		//td = term frequncy = number of ocurrences for all words
 		//TODO determine important words
+		Vocabulary voc = new Vocabulary();
 		for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
+			voc.addData(dataAttribute);
 			//Get the sentences
 			String[] sentences = dataAttribute.getData().split("\\.\\s");
 			for (String sentence : sentences) {
-				String[] words = sentence.split("\\s+");
+				String[] words = OpenNLPFactory.getTokenizer().tokenize(sentence);
 				// The following rules are applied to determine if the current word is of general importance:
 				// The word is the main thing of the sentence. This can be so for several reasons:
 				// 1. The only word (notice, skip abbreviations like i.e. and a.s.a.p.)
-
+				if (words.length == 1 && !dataAttribute.getDataType().equals(DataType.CLASS)) {
+					importantWords.add(words[0]);
+				}
 				// 2. The word is a noun
 				// Located in SmartHasing#isImportantWord()
 				// 3. The word starts with a captial letter
+				for (String word : words) {
+					if (Character.isUpperCase(word.toCharArray()[0])) {
+						importantWords.add(word);
+					}
+				}
+			}
+		}
+		int nr_of_terms = voc.getWordcountMap().size();
+		for (Map.Entry<String, Integer> entry : voc.getWordcountMap().entrySet()) {
+			String word = entry.getKey();
+			//calculate td's
+			double tf = (double) entry.getValue() / nr_of_terms;
+			//calulate idf's
+			double idf = Math.log((double) raw_data.size() / (1 + getNrOfDocumentsThatContains(word, raw_data))); /*nr of documents where the term occurs*/
+			double tfidf = tf * idf;
+			System.out.println("Tf-idf for " + word + " is: " + tfidf);
+			if (tfidf < 0.01) {
+				importantWords.add(word);
+				System.out.println("The word " + word + " is important enough because of frequency: " + tf + " * " + idf + " = " + tfidf);
 			}
 		}
 	}
 
+	private int getNrOfDocumentsThatContains(String word, List<DataEntry> dataEntries) {
+		int nr = 0;
+		for (DataEntry dataEntry : dataEntries) {
+			for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
+				if (dataAttribute.getData().contains(word)) {
+					nr++;
+					break;
+				}
+			}
+		}
+		return nr;
+	}
+
 	private boolean isImportantWord(DataEntry dataEntry, String sentence, String word) {
-		boolean isImportant = importantWords.indexOf(word) > -1;
+		boolean isImportant = importantWords.contains(word);
 		// TODO: 8-4-2016 compare ODWN POS with OpenNLP POS tagger
+		String[] tagged = OpenNLPFactory.getPOSTagger().tag(new String[]{word});
 		if (!isImportant && "true".equals(settings.getSettingsMap().get("anonimiseer_zelfstandige_naamwoorden").getValue())) {
-			isImportant = "noun".equals(ODWNReader.getInstance().getWordType(word));
+			boolean wordnet_value = "noun".equals(ODWNReader.getInstance().getWordType(word));
+			boolean tagger_value = POS.NOUN.is(tagged[0]);
+			isImportant = wordnet_value || tagger_value;
 			if (isImportant) importantWords.add(word);
 		}
 		if (!isImportant && "true".equals(settings.getSettingsMap().get("anonimiseer_werkwoorden").getValue())) {
-			isImportant = "verb".equals(ODWNReader.getInstance().getWordType(word));
+			isImportant = "verb".equals(ODWNReader.getInstance().getWordType(word)) || POS.VERB.is(tagged[0]);
 			if (isImportant) importantWords.add(word);
 		}
 		if (!isImportant && "true".equals(settings.getSettingsMap().get("anonimiseer_werkwoorden").getValue())) {
@@ -86,6 +131,4 @@ public class SmartHashing extends AnonymizationTechnique {
 		}
 		return isImportant;
 	}
-
-
 }
