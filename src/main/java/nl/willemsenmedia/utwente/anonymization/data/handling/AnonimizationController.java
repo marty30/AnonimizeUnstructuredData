@@ -178,19 +178,34 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 
 	@Override
 	public List<Callable<DataEntry>> call() {
-		List<Callable<DataEntry>> todolist = new ArrayList<>();
+		List<Callable<DataEntry>> preprocess_todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
-			todolist.add(() -> {
-				DataEntry anonimous_entry = anonimizeEntry(raw_entry, raw_data);
+			preprocess_todolist.add(() -> determineTechnique().doPreProcessing(raw_entry, settings));
+			raw_entry.isPreProcessed = true;
+		}
+
+		List<Callable<DataEntry>> anonymize_todolist = new ArrayList<>();
+		for (DataEntry raw_entry : this.raw_data) {
+			anonymize_todolist.add(() -> {
+				if (!raw_entry.isPreProcessed) {
+					determineTechnique().doPreProcessing(raw_entry, settings);
+				}
+				int index = this.raw_data.indexOf(raw_entry);
+				DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, raw_data, settings);
+				anonimous_entry.isAnonymized = true;
+				anonimous_data[index] = anonimous_entry;
+				updateStatus(index);
 				if (!System.getProperty("useGUI").equals("false"))
 					pushEntryToView(raw_entry, anonimous_entry);
 				return anonimous_entry;
 			});
 		}
+
 		//Run all tasks
 		System.out.println("Anonimization bezig ...");
 		try {
-			List<Future<DataEntry>> results = threadpool.invokeAll(todolist);
+			List<Future<DataEntry>> results_preprocess = threadpool.invokeAll(preprocess_todolist);
+			List<Future<DataEntry>> results_anonymize = threadpool.invokeAll(anonymize_todolist);
 		} catch (InterruptedException e) {
 			ErrorHandler.handleException(e);
 		}
@@ -202,17 +217,7 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 		updateStatus(raw_data.size());
 		System.out.println("Anonimisatie is klaar!");
 		this.done = true;
-		return todolist;
-	}
-
-	private DataEntry anonimizeEntry(DataEntry raw_entry, List<DataEntry> raw_data) {
-		int index = this.raw_data.indexOf(raw_entry);
-		determineTechnique().doPreProcessing(raw_entry, settings);
-		DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, raw_data, settings);
-		anonimous_data[index] = anonimous_entry;
-
-		updateStatus(index);
-		return anonimous_entry;
+		return anonymize_todolist;
 	}
 
 	private void pushEntryToView(DataEntry raw_entry, DataEntry anonimous_entry) {

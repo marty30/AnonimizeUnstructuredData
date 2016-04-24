@@ -11,6 +11,8 @@ import java.util.List;
  */
 public class DataEntry {
 
+	public boolean isPreProcessed = false;
+	public boolean isAnonymized = false;
 	private List<DataAttribute> headers;
 	private List<DataAttribute> dataAttributes;
 

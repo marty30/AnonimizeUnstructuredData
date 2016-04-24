@@ -59,4 +59,8 @@ public class Vocabulary {
 	public Map<String, Integer> getWordcountMap() {
 		return voc;
 	}
+
+	public String getWord(int key) {
+		return voc.getEntryFromIndex(key).getKey();
+	}
 }
