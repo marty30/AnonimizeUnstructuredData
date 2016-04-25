@@ -36,7 +36,7 @@ public class DataModifier {
 	}
 
 	public static String sanitize(String unsanitizedString) {
-		return unsanitizedString.trim().toLowerCase().replaceAll("[\\.!?\"\']", "");
+		return unsanitizedString.trim().toLowerCase().replaceAll("[!?\"\']", "");
 	}
 
 	public static String bin2hex(byte[] data) {

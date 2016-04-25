@@ -71,7 +71,7 @@ public abstract class AnonymizationTechnique {
 			attr.setData(attr.getData().replaceAll("\\r\\n", "\r\n"));
 			//Remove punctuation
 			if (settings.getSettingsMap().get("verwijder_leestekens").getValue().equals("true")) {
-				attr.setData(attr.getData().replaceAll("[^\\w\\s]", ""));
+				attr.setData(attr.getData().replaceAll("[^\\w\\s\\.]", ""));
 			}
 			// Handle specific regexes
 			settings.getSettingsMap().get("regexes").getContent().stream().filter(regex_list_entry -> regex_list_entry instanceof JAXBElement).forEach(regex_list_entry -> {

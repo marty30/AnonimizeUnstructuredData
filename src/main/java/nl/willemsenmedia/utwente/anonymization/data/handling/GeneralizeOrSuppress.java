@@ -1,5 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization.data.handling;
 
+import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.Vocabulary;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
@@ -7,6 +8,7 @@ import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Martijn on 8-3-2016.
@@ -31,33 +33,26 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 
 	@Override
 	public DataEntry anonymize(DataEntry dataEntry, List<DataEntry> raw_data, Settings settings) {
+		DataEntry anaonymous_entry = new DataEntry(dataEntry.getHeaders());
 		// Get data
-
-		//// TODO: 23-4-2016 Dit moet op een andere plek want zo wijzigt je vocabulary tijdens het uitvoeren van het anonymiseren
 		Map<Integer, Integer> wordmap = Vocabulary.createCleanWordcountMap(voc, dataEntry);
-		// Sort all words
-
 		// Check the occurrences (enough k?)
-		List<String> words_to_generalize = new LinkedList<>();
-		for (Map.Entry<Integer, Integer> entry : wordmap.entrySet()) {
-			if (entry.getValue() < k) {
-				words_to_generalize.add(voc.getWord(entry.getKey()));
-			}
-		}
+		List<String> words_to_generalize = wordmap.entrySet().stream().filter(entry -> entry.getValue() < k).map(entry -> voc.getWord(entry.getKey())).collect(Collectors.toCollection(LinkedList::new));
 		// Try generalization using Cornetto
 		for (String word : words_to_generalize) {
 			System.out.println(word);
 		}
 		// Check again (enough k?)
-		List<String> words_to_suppress = new LinkedList<>();
-		for (Map.Entry<Integer, Integer> entry : wordmap.entrySet()) {
-			if (entry.getValue() < k) {
-				words_to_generalize.add(voc.getWord(entry.getKey()));
-			}
-		}
+		List<String> words_to_suppress = wordmap.entrySet().stream().filter(entry -> entry.getValue() < k).map(entry -> voc.getWord(entry.getKey())).collect(Collectors.toCollection(LinkedList::new));
 		// Still not enough? Then suppress
-
+		for (DataAttribute raw_dataAttribute : dataEntry.getDataAttributes()) {
+			DataAttribute anaonymous_dataAttribute = raw_dataAttribute.clone();
+			for (String word : words_to_suppress) {
+				anaonymous_dataAttribute.setData(raw_dataAttribute.getData().replace(word, ""));
+			}
+			anaonymous_entry.addDataAttribute(anaonymous_dataAttribute);
+		}
 		// Finally return the data
-		return dataEntry;
+		return anaonymous_entry;
 	}
 }

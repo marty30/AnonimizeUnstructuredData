@@ -39,8 +39,8 @@ public class WekaNaiveBayesStart {
 
 	public static void main(String[] args) throws Exception {
 		//get file
-		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\datasets\\SFU_Review_Corpus.arff";
-//		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous2.arff";
+//		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\datasets\\SFU_Review_Corpus.arff";
+		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_HashSentence.arff";
 //		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_preprocessed.arff";
 		// read file
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
@@ -52,16 +52,20 @@ public class WekaNaiveBayesStart {
 		NaiveBayesMultinomialText naiveBayes = new NaiveBayesMultinomialText();
 		naiveBayes.buildClassifier(instances);
 		Evaluation eval = new Evaluation(instances);
-		eval.crossValidateModel(naiveBayes, instances, 4, new Debug.Random(1));
-		System.out.println(eval.toSummaryString("\nResults\n=====\n", true));
-		System.out.println("F measure:"+eval.fMeasure(1) + " Precision: " + eval.precision(1));
+		eval.crossValidateModel(naiveBayes, instances, 10, new Debug.Random(1));
+		System.out.println(eval.toSummaryString("\nResults\n=====\n10-fold cross validation:", true));
+		System.out.println("F measure:"+eval.fMeasure(1) + "\r\n" +
+				"Precision: " + eval.precision(1));
 		System.out.println(eval.toMatrixString());
 		System.out.println("---------------------------------------------------------");
+		System.out.println("80% split with a train and a test dataset");
 		ArffLoader loader = new ArffLoader();
 		loader.setFile(new File(filename));
-		Instances[] traintest = splitDataset(loader.getDataSet(), 75);
+		Instances[] traintest = splitDataset(loader.getDataSet(), 80);
 		WekaNaiveBayesStart clasif = new WekaNaiveBayesStart(traintest[0]);
 		weka.classifiers.evaluation.Evaluation evalu = clasif.test(traintest[1]);
+		System.out.println("F measure:"+evalu.fMeasure(1) + "\r\n" +
+				"Precision: " + evalu.precision(1));
 		System.out.println(evalu.toMatrixString());
 	}
 
@@ -83,7 +87,7 @@ public class WekaNaiveBayesStart {
 		testdata.setClassIndex(testdata.numAttributes()-1);
 		weka.classifiers.evaluation.Evaluation eTest = new weka.classifiers.evaluation.Evaluation(dataRaw);
 		eTest.evaluateModel(classifier, testdata);
-		String strSummary = eTest.toSummaryString();
+		String strSummary = eTest.toSummaryString(true);
 		System.out.println(strSummary);
 		return eTest;
 	}

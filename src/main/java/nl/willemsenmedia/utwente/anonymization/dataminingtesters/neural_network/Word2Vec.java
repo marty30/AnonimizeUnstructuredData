@@ -3,6 +3,8 @@ package nl.willemsenmedia.utwente.anonymization.dataminingtesters.neural_network
 import nl.willemsenmedia.utwente.anonymization.data.DataAttribute;
 import nl.willemsenmedia.utwente.anonymization.data.DataEntry;
 import nl.willemsenmedia.utwente.anonymization.data.DataType;
+import nl.willemsenmedia.utwente.anonymization.data.handling.AnonimizationController;
+import nl.willemsenmedia.utwente.anonymization.data.handling.HashSentence;
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.records.reader.impl.CSVRecordReader;
 import org.canova.api.split.FileSplit;
@@ -48,8 +50,9 @@ public class Word2Vec {
 	public static void mainTxt(String[] args) throws Exception {
 		// Config
 		int max_words_for_testing = 100;
-		File filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_preprocessed.csv");
-		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_anonimous.csv");
+		File filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv");
+		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_HashSentence.csv");
+		AnonimizationController.setAnonyzationTechnique(new HashSentence());
 
 		log.info("Load & Vectorize Sentences....");
 		// Strip white space before and after for each line
