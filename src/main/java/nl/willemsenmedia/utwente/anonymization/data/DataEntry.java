@@ -9,7 +9,7 @@ import java.util.List;
  * <p>
  * A data entry is a set of data attributes.
  */
-public class DataEntry {
+public class DataEntry implements Cloneable {
 
 	public boolean isPreProcessed = false;
 	public boolean isAnonymized = false;
@@ -49,5 +49,12 @@ public class DataEntry {
 
 	public void update(DataEntry newEntry) {
 		this.dataAttributes = newEntry.getDataAttributes();
+	}
+
+	@Override
+	public DataEntry clone() {
+		DataEntry new_entry = new DataEntry(headers);
+		getDataAttributes().forEach(dataAttribute -> new_entry.addDataAttribute(dataAttribute.clone()));
+		return new_entry;
 	}
 }

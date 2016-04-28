@@ -178,6 +178,7 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 
 	@Override
 	public List<Callable<DataEntry>> call() {
+		updateStatus(-1);
 		List<Callable<DataEntry>> preprocess_todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
 			preprocess_todolist.add(() -> determineTechnique().doPreProcessing(raw_entry, settings));

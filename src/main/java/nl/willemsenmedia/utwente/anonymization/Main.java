@@ -1,5 +1,6 @@
 package nl.willemsenmedia.utwente.anonymization;
 
+import edu.smu.tspell.wordnet.WordNetDatabase;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -43,48 +44,52 @@ public class Main extends Application {
 	 * @param args args for the program (not used, only passed to the GUI if used)
 	 */
 	public static void main(String[] args) {
-		//Fix for bug with comboboxes: https://bugs.openjdk.java.net/browse/JDK-8132897
-		System.setProperty("glass.accessible.force", "false");
-		//Set language (for wordnet and stopwords etc.) if it is not yet set
-		if (System.getProperty("lang") == null || System.getProperty("lang").equals("")) {
-			System.setProperty("lang", "en");
+		try {
+			//Fix for bug with comboboxes: https://bugs.openjdk.java.net/browse/JDK-8132897
+			System.setProperty("glass.accessible.force", "false");
+			//Set language (for wordnet and stopwords etc.) if it is not yet set
+			if (System.getProperty("lang") == null || System.getProperty("lang").equals("")) {
+				System.setProperty("lang", "en");
 //			System.setProperty("lang", "nl");
-		}
-		if (System.getProperty("useGUI") == null || System.getProperty("useGUI").equals("") || System.getProperty("useGUI").equals("true")) {
-			System.setProperty("useGUI", "true");
-		}
-		if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
-			System.setProperty("settings", "");//Main.class.getClassLoader().getResource("default_settings.xml").getFile());
-		}
-		if (System.getProperty("technique") == null) {
-			System.err.println("Er moet een techniek bepaald zijn, anders werkt de applicatie niet!");
-			System.err.println();
-			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
-			System.exit(-1);
-		} else if ((System.getProperty("settings") != null && !System.getProperty("settings").equals("")) && (!System.getProperty("settings").endsWith(".xml") || !new File(System.getProperty("settings")).exists())) {
-			System.err.println("De settings moeten van een xml-bestand komen en het lijkt erop dat deze niet goed is gedefinieerd. Dit is gespecificeerd: " + System.getProperty("settings"));
-			System.err.println();
-			System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
-			System.exit(-1);
-		} else {
-
-			log.info("Load wordnet");
-			loadWordnet();
-			log.info("Launch");
-			if (System.getProperty("useGUI").equals("false")) {
-				log.info("Validate settings");
-				Settings settings;
-				if (System.getProperty("settings").equals("")) {
-					settings = validateSettings(new StreamSource(Main.class.getClassLoader().getResourceAsStream("default_settings.xml")));
-				} else {
-					settings = validateSettings(new StreamSource(System.getProperty("settings")));
-				}
-				startProgramWithoutGUI(settings);
-				log.info("Done! Now exit.");
-			} else {
-				startGUI(args);
 			}
-			System.exit(0);
+			if (System.getProperty("useGUI") == null || System.getProperty("useGUI").equals("") || System.getProperty("useGUI").equals("true")) {
+				System.setProperty("useGUI", "true");
+			}
+			if (System.getProperty("settings") == null || System.getProperty("settings").equals("") || System.getProperty("settings").equals("default")) {
+				System.setProperty("settings", "");//Main.class.getClassLoader().getResource("default_settings.xml").getFile());
+			}
+			if (System.getProperty("technique") == null) {
+				System.err.println("Er moet een techniek bepaald zijn, anders werkt de applicatie niet!");
+				System.err.println();
+				System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
+				System.exit(-1);
+			} else if ((System.getProperty("settings") != null && !System.getProperty("settings").equals("")) && (!System.getProperty("settings").endsWith(".xml") || !new File(System.getProperty("settings")).exists())) {
+				System.err.println("De settings moeten van een xml-bestand komen en het lijkt erop dat deze niet goed is gedefinieerd. Dit is gespecificeerd: " + System.getProperty("settings"));
+				System.err.println();
+				System.err.println("Usage: -Dtechnique={HashSentence/HashAll/SmartHashing/GeneralizeOrSuppress/k-anonymity/???} -Dsettings=path_to_file -DuseGUI={true/false} -Dfile=path_fo_file_to_anonimize");
+				System.exit(-1);
+			} else {
+
+				log.info("Load wordnet");
+				loadWordnet();
+				log.info("Launch");
+				if (System.getProperty("useGUI").equals("false")) {
+					log.info("Validate settings");
+					Settings settings;
+					if (System.getProperty("settings").equals("")) {
+						settings = validateSettings(new StreamSource(Main.class.getClassLoader().getResourceAsStream("default_settings.xml")));
+					} else {
+						settings = validateSettings(new StreamSource(System.getProperty("settings")));
+					}
+					startProgramWithoutGUI(settings);
+					log.info("Done! Now exit.");
+				} else {
+					startGUI(args);
+				}
+				System.exit(0);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -158,13 +163,24 @@ public class Main extends Application {
 	}
 
 	private static void loadWordnet() {
-		new Thread() {
-			@Override
-			public void run() {
-				ODWNReader.getInstance();
-				log.info("Ready loading wordnet");
-			}
-		}.start();
+		if (System.getProperty("lang").equals("en")) {
+			new Thread() {
+				@Override
+				public void run() {
+					System.setProperty("wordnet.database.dir", Main.class.getClassLoader().getResource("WordNet-3.0/dict").getPath());
+					WordNetDatabase.getFileInstance();
+					log.info("Ready loading wordnet");
+				}
+			}.start();
+		} else if (System.getProperty("lang").equals("nl")) {
+			new Thread() {
+				@Override
+				public void run() {
+					ODWNReader.getInstance();
+					log.info("Ready loading wordnet");
+				}
+			}.start();
+		}
 	}
 
 	@Override
