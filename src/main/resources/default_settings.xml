@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <settings>
     <!--Data selection options-->
-    <setting name="bevat_kopteksten" type="java.lang.Boolean" value="false" overwritable="true"/>
-    <setting name="beginrij" type="java.lang.Integer" value="0" overwritable="true"/>
+    <setting name="bevat_kopteksten" type="java.lang.Boolean" value="true" overwritable="true"/>
+    <setting name="beginrij" type="java.lang.Integer" value="1" overwritable="true"/>
     <!--Note that -1 means the last row-->
-    <setting name="eindrij" type="java.lang.Integer" value="-1" overwritable="true"/>
+    <setting name="eindrij" type="java.lang.Integer" value="50" overwritable="true"/>
 
     <!--Pre processing options-->
     <setting name="verwijder_lidwoorden" type="java.lang.Boolean" value="true" overwritable="false"/>

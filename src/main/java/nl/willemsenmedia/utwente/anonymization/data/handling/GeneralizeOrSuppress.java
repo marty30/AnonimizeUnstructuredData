@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 public class GeneralizeOrSuppress extends AnonymizationTechnique {
 	private static Vocabulary voc;
 	private static WordNetDatabase wordNetDatabase = WordNetDatabase.getFileInstance();
-	private static String could_not_generalize_placeholder = System.getProperty("could_not_generalize_placeholder");
+	private static String could_not_generalize_placeholder = System.getProperty("could_not_generalize_placeholder") == null ? "<sprds>" : System.getProperty("could_not_generalize_placeholder");
+	private static Vocabulary voc_clone;
 	private final int k;
 
 	public GeneralizeOrSuppress(int k) {
@@ -36,6 +37,8 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 
 	@Override
 	public DataEntry anonymize(DataEntry dataEntry, List<DataEntry> raw_data, Settings settings) {
+		if (voc_clone == null)
+			voc_clone = voc.clone();
 		DataEntry anaonymous_entry = dataEntry.clone();
 		try {
 			// Get data
@@ -44,7 +47,8 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 			List<String> words_to_generalize = wordmap.entrySet().stream().filter(entry -> entry.getValue() < k).map(entry -> voc.getWord(entry.getKey())).collect(Collectors.toCollection(LinkedList::new));
 			// Try generalization using the correct wordnet
 			for (String word : words_to_generalize) {
-				replace_word(anaonymous_entry, word, getHypernym(word));
+				if (!word.equals(could_not_generalize_placeholder))
+					replace_word(anaonymous_entry, word, getHypernym(word));
 			}
 			//Todo dit zou eigenlijk voor de hele lijst moeten, en niet per entry... Ik kan het wel hacken maar dan werkt de progress niet.
 			// Check again (enough k?)
@@ -61,9 +65,9 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 	}
 
 	private synchronized void replace_word(DataEntry dataEntry, String search, String replace) {
-		if (search != null && replace != null) {
-			voc.removeData(dataEntry);
-			dataEntry.getDataAttributes().forEach(dataAttribute -> dataAttribute.setData(dataAttribute.getData().replace(search, replace)));
+		if (search != null) {
+			voc.removeData(dataEntry, could_not_generalize_placeholder);
+			dataEntry.getDataAttributes().forEach(dataAttribute -> dataAttribute.setData(dataAttribute.getData().replace(search, replace == null ? could_not_generalize_placeholder : replace)));
 			voc.addData(dataEntry);
 		}
 	}
@@ -76,14 +80,14 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 			}
 			Synset possible_hypernym;
 			if (synsets[0].getType().equals(SynsetType.NOUN)) {
-				possible_hypernym = Arrays.asList(((NounSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.NOUN)).findFirst().get();
+				possible_hypernym = Arrays.asList(((NounSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.NOUN)).findFirst().orElse(null);
 			} else if (synsets[0].getType().equals(SynsetType.VERB)) {
-				possible_hypernym = Arrays.asList(((VerbSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.VERB)).findFirst().get();
+				possible_hypernym = Arrays.asList(((VerbSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.VERB)).findFirst().orElse(null);
 			} else {
 				System.err.println("Could not find a hypernym for " + word);
 				return could_not_generalize_placeholder;
 			}
-			if (possible_hypernym.getWordForms().length == 0) {
+			if (possible_hypernym == null || possible_hypernym.getWordForms().length == 0) {
 				return could_not_generalize_placeholder;
 			}
 			return possible_hypernym.getWordForms()[0];

@@ -53,4 +53,12 @@ public class MyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 		K key = keyList.get(index);
 		return new DefaultEntry<>(key, get(key));
 	}
+
+	@SuppressWarnings("CloneDoesntCallSuperClone")
+	@Override
+	public MyLinkedHashMap<K, V> clone() {
+		MyLinkedHashMap<K, V> newMap = new MyLinkedHashMap<>();
+		newMap.putAll(this);
+		return newMap;
+	}
 }

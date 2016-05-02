@@ -1,14 +1,11 @@
 package nl.willemsenmedia.utwente.anonymization.data;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * Created by Martijn on 21-4-2016.
  */
-public class Vocabulary {
+public class Vocabulary implements Cloneable {
 	MyLinkedHashMap<String, Integer> voc = new MyLinkedHashMap<>();
 	LinkedList<String> classes = new LinkedList<>();
 
@@ -64,24 +61,38 @@ public class Vocabulary {
 		return voc.getEntryFromIndex(key).getKey();
 	}
 
-	public void removeData(DataEntry dataEntry) {
-		dataEntry.getDataAttributes().forEach(this::removeData);
+	public void removeData(DataEntry dataEntry, String... tokensToIgnore) {
+		dataEntry.getDataAttributes().forEach(dataAttribute -> removeData(dataAttribute, tokensToIgnore));
 	}
 
-	public void removeData(DataAttribute dataAttribute) {
+	public void removeData(DataAttribute dataAttribute, String... tokensToIgnore) {
+		List<String> tokensToIgnoreList = Arrays.asList(tokensToIgnore);
 		if (!dataAttribute.getDataType().equals(DataType.CLASS)) {
 			StringTokenizer tokenizer = new StringTokenizer(dataAttribute.getData(), " \t\n\r\f,\\.;");
 			while (tokenizer.hasMoreTokens()) {
 				String token = tokenizer.nextToken().toLowerCase();
-				if (voc.contains(token)) {
-					if (voc.get(token).equals(0))
-						System.err.println("Kon " + token + " niet verwijderen uit de vocabulary want er waren maar 0 entries. Het lijkt allemaal niet helemaal goed toegevoegd te zijn...");
-					voc.put(token, voc.get(token) - 1);
-				} else
-					System.err.println("Kon " + token + " niet verwijderen uit de vocabulary want het word bestond niet in de voc...");
+				if (!tokensToIgnoreList.contains(token)) {
+					if (voc.contains(token)) {
+						if (voc.get(token).equals(0))
+							System.err.println("Kon " + token + " niet verwijderen uit de vocabulary want er waren maar 0 entries. Het lijkt allemaal niet helemaal goed toegevoegd te zijn...");
+						else
+							voc.put(token, voc.get(token) - 1);
+					} else {
+						System.err.println("Kon " + token + " niet verwijderen uit de vocabulary want het word bestond niet in de voc...");
+					}
+				}
 			}
 		} else {
 			if (!classes.contains(dataAttribute.getData())) classes.add(dataAttribute.getData());
 		}
+	}
+
+	@SuppressWarnings("CloneDoesntCallSuperClone")
+	@Override
+	public Vocabulary clone() {
+		Vocabulary new_voc = new Vocabulary();
+		new_voc.voc = voc.clone();
+		new_voc.classes.addAll(classes);
+		return new_voc;
 	}
 }

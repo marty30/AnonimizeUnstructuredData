@@ -181,8 +181,11 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 		updateStatus(-1);
 		List<Callable<DataEntry>> preprocess_todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
+			long starttime = System.currentTimeMillis();
 			preprocess_todolist.add(() -> determineTechnique().doPreProcessing(raw_entry, settings));
 			raw_entry.isPreProcessed = true;
+			long endtime = System.currentTimeMillis();
+			raw_entry.setPreProcessingTime(endtime - starttime);
 		}
 
 		List<Callable<DataEntry>> anonymize_todolist = new ArrayList<>();
@@ -191,9 +194,12 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 				if (!raw_entry.isPreProcessed) {
 					determineTechnique().doPreProcessing(raw_entry, settings);
 				}
+				long starttime = System.currentTimeMillis();
 				int index = this.raw_data.indexOf(raw_entry);
 				DataEntry anonimous_entry = determineTechnique().anonymize(raw_entry, raw_data, settings);
 				anonimous_entry.isAnonymized = true;
+				long endtime = System.currentTimeMillis();
+				anonimous_entry.setAnonymizationTime(endtime - starttime);
 				anonimous_data[index] = anonimous_entry;
 				updateStatus(index);
 				if (!System.getProperty("useGUI").equals("false"))

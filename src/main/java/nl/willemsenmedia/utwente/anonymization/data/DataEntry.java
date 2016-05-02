@@ -15,6 +15,8 @@ public class DataEntry implements Cloneable {
 	public boolean isAnonymized = false;
 	private List<DataAttribute> headers;
 	private List<DataAttribute> dataAttributes;
+	private long anonymizationTime;
+	private long preProcessingTime;
 
 	public DataEntry(List<DataAttribute> headers, DataAttribute... dataAttributes) {
 		this.dataAttributes = new LinkedList<>();
@@ -56,5 +58,13 @@ public class DataEntry implements Cloneable {
 		DataEntry new_entry = new DataEntry(headers);
 		getDataAttributes().forEach(dataAttribute -> new_entry.addDataAttribute(dataAttribute.clone()));
 		return new_entry;
+	}
+
+	public void setAnonymizationTime(long anonymizationTime) {
+		this.anonymizationTime = anonymizationTime;
+	}
+
+	public void setPreProcessingTime(long preProcessingTime) {
+		this.preProcessingTime = preProcessingTime;
 	}
 }
