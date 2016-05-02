@@ -20,7 +20,11 @@
     </setting>
 
     <!--During processing - only available if SmartHashing is used-->
-    <setting name="anonimiseer_zelfstandige_naamwoorden" type="java.lang.Boolean" value="true" overwritable="true"/>
+    <setting name="anonimiseer_zelfstandige_naamwoorden" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="anonimiseer_werkwoorden" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="anonimiseer_datums" type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="gebruik_tfidf" screenname="Gebruik Tf-idf om woorden te bepalen die gehasht moeten worden"
+             type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="max_tfidf" screenname="Als de tf-idf lager is dan dit getal zal het worden gehasht."
+             type="java.lang.Double" value="0.01" overwritable="true"/>
 </settings>

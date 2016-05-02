@@ -34,9 +34,10 @@ public enum POS {
 	}
 
 	public boolean is(String pos) {
-		if (System.getProperty("lang").equals("en"))
+		if (System.getProperty("lang").equals("en")) {
 			return pos.startsWith(getEnglishAcronym());
-		else
+		} else {
 			return pos.startsWith(getDutchAcronym());
+		}
 	}
 }

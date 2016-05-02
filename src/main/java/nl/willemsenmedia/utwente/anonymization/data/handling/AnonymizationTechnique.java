@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
  */
 public abstract class AnonymizationTechnique {
 
+	protected boolean doStem = true;
+
 	public static String find(String text, String regex, Function<Map, String> manipulation) {
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(text);
@@ -112,8 +114,10 @@ public abstract class AnonymizationTechnique {
 				}
 			}
 			//Finally stem the whole thing
-			for (String token : tokens) {
-				attr.setData(attr.getData().replace(token, DataModifier.getStem(token)));
+			if (doStem) {
+				for (String token : tokens) {
+					attr.setData(attr.getData().replace(token, DataModifier.getStem(token)));
+				}
 			}
 		}
 		return dataEntry;
