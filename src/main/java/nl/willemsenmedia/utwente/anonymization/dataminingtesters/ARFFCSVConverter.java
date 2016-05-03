@@ -36,8 +36,6 @@ public class ARFFCSVConverter {
 		Instances data = loader.getDataSet();
 
 		ArffSaver saver = new ArffSaver();
-		//TODO bepalen of er een string van gemaakt moet worden.
-//		data.get(0).numAttributes()
 		Enumeration<Attribute> attributes = data.enumerateAttributes();
 		int index = 0;
 		while (attributes.hasMoreElements()) {
