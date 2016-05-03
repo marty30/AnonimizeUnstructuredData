@@ -35,6 +35,7 @@
     <xs:simpleType name="settingsType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="java.lang.Boolean"/>
+            <xs:enumeration value="java.lang.Double"/>
             <xs:enumeration value="java.lang.Integer"/>
             <xs:enumeration value="java.lang.String"/>
             <xs:enumeration value="java.util.Map"/>

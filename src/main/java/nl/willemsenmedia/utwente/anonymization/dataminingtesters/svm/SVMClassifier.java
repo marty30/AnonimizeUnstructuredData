@@ -89,7 +89,7 @@ public class SVMClassifier {
 
 	public static void main(String[] args) throws IOException, JAXBException {
 //		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"));
-		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_HashSentence.csv"));
+		new SVMClassifier().run(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_SmartHashing2.csv"));
 	}
 
 	private void run(File inputfile) throws IOException, JAXBException {

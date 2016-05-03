@@ -51,7 +51,7 @@ public class Word2Vec {
 		// Config
 		int max_words_for_testing = 100;
 		File filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv");
-		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_HashSentence.csv");
+		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_SmartHashing2.csv");
 		AnonimizationController.setAnonyzationTechnique(new HashSentence());
 
 		log.info("Load & Vectorize Sentences....");

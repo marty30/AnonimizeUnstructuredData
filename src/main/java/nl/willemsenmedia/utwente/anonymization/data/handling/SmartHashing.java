@@ -50,12 +50,11 @@ public class SmartHashing extends AnonymizationTechnique {
 						else
 							newSentence.append(word).append(" ");
 					}
-					newData.append(newSentence.toString().trim()).append(".");
+					newData.append(newSentence.toString().trim()).append(". ");
 				}
 				newDataAttribute.setData(newData.toString());
 			}
 			newDataEntry.addDataAttribute(newDataAttribute);
-
 		}
 		return newDataEntry;
 	}

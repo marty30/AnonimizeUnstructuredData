@@ -4,7 +4,7 @@
     <setting name="bevat_kopteksten" type="java.lang.Boolean" value="true" overwritable="true"/>
     <setting name="beginrij" type="java.lang.Integer" value="1" overwritable="true"/>
     <!--Note that -1 means the last row-->
-    <setting name="eindrij" type="java.lang.Integer" value="50" overwritable="true"/>
+    <setting name="eindrij" type="java.lang.Integer" value="-1" overwritable="true"/>
 
     <!--Pre processing options-->
     <setting name="verwijder_lidwoorden" type="java.lang.Boolean" value="true" overwritable="false"/>
@@ -20,7 +20,7 @@
     </setting>
 
     <!--During processing - only available if SmartHashing is used-->
-    <setting name="anonimiseer_zelfstandige_naamwoorden" type="java.lang.Boolean" value="false" overwritable="true"/>
+    <setting name="anonimiseer_zelfstandige_naamwoorden" type="java.lang.Boolean" value="true" overwritable="true"/>
     <setting name="anonimiseer_werkwoorden" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="anonimiseer_datums" type="java.lang.Boolean" value="false" overwritable="true"/>
     <setting name="gebruik_tfidf" screenname="Gebruik Tf-idf om woorden te bepalen die gehasht moeten worden"
