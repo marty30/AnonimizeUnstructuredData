@@ -1,5 +1,7 @@
 package nl.willemsenmedia.utwente.anonymization.data;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 /**
@@ -84,6 +86,32 @@ public class Vocabulary implements Cloneable {
 			}
 		} else {
 			if (!classes.contains(dataAttribute.getData())) classes.add(dataAttribute.getData());
+		}
+	}
+
+	public void changeWord(String old_word, String new_word, DataEntry dataEntry, String... tokensToIgnore) {
+		List<String> tokensToIgnoreList = Arrays.asList(tokensToIgnore);
+		if (!tokensToIgnoreList.contains(old_word)) {
+			//Find the number of occurrences
+			int occurrences = 0;
+			for (DataAttribute dataAttribute : dataEntry.getDataAttributes()) {
+				occurrences += StringUtils.countMatches(dataAttribute.getData(), " " + old_word + " ");
+			}
+			// Now change it in the voc if the number of occurrences is larger than 0
+			if (occurrences > 0) {
+				if (voc.contains(old_word)) {
+					if (voc.get(old_word) < occurrences)
+						System.err.println("Kon " + old_word + " niet verwijderen uit de vocabulary want er waren maar 0 entries. Het lijkt allemaal niet helemaal goed toegevoegd te zijn...");
+					else
+						voc.put(old_word, voc.get(old_word) - occurrences);
+				} else {
+					System.err.println("Kon " + old_word + " niet verwijderen uit de vocabulary want het word bestond niet in de voc...");
+				}
+				if (voc.contains(new_word))
+					voc.put(new_word, voc.get(new_word) + occurrences);
+				else
+					voc.put(new_word, occurrences);
+			}
 		}
 	}
 

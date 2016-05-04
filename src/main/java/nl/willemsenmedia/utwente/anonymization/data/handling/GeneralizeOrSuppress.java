@@ -66,9 +66,8 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 
 	private synchronized void replace_word(DataEntry dataEntry, String search, String replace) {
 		if (search != null) {
-			voc.removeData(dataEntry, could_not_generalize_placeholder);
 			dataEntry.getDataAttributes().forEach(dataAttribute -> dataAttribute.setData(dataAttribute.getData().replace(search, replace == null ? could_not_generalize_placeholder : replace)));
-			voc.addData(dataEntry);
+			voc.changeWord(search, replace, dataEntry, could_not_generalize_placeholder);
 		}
 	}
 
@@ -80,6 +79,7 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 			}
 			Synset possible_hypernym;
 			if (synsets[0].getType().equals(SynsetType.NOUN)) {
+				//// TODO: 4-5-2016 Ik pak hier nu de eerste synset, maar eigenlijk moet ik voor alle synsets kijken of er hypernyms zijn
 				possible_hypernym = Arrays.asList(((NounSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.NOUN)).findFirst().orElse(null);
 			} else if (synsets[0].getType().equals(SynsetType.VERB)) {
 				possible_hypernym = Arrays.asList(((VerbSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.VERB)).findFirst().orElse(null);
