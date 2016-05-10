@@ -60,13 +60,15 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		//Remove chars
+		anaonymous_entry.deleteChars("\'");
 		// Finally return the data
 		return anaonymous_entry;
 	}
 
 	private synchronized void replace_word(DataEntry dataEntry, String search, String replace) {
 		if (search != null) {
-			dataEntry.getDataAttributes().forEach(dataAttribute -> dataAttribute.setData(dataAttribute.getData().replace(search, replace == null ? could_not_generalize_placeholder : replace)));
+			dataEntry.replace(" " + search.trim() + " ", replace == null ? " " + could_not_generalize_placeholder.trim() + " " : " " + replace.trim() + " ");
 			voc.changeWord(search, replace, dataEntry, could_not_generalize_placeholder);
 		}
 	}
@@ -77,20 +79,24 @@ public class GeneralizeOrSuppress extends AnonymizationTechnique {
 			if (synsets.length == 0) {
 				return could_not_generalize_placeholder;
 			}
-			Synset possible_hypernym;
-			if (synsets[0].getType().equals(SynsetType.NOUN)) {
-				//// TODO: 4-5-2016 Ik pak hier nu de eerste synset, maar eigenlijk moet ik voor alle synsets kijken of er hypernyms zijn
-				possible_hypernym = Arrays.asList(((NounSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.NOUN)).findFirst().orElse(null);
-			} else if (synsets[0].getType().equals(SynsetType.VERB)) {
-				possible_hypernym = Arrays.asList(((VerbSynset) synsets[0]).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.VERB)).findFirst().orElse(null);
-			} else {
+			List<Synset> possible_hypernyms = new LinkedList<>();
+			for (Synset synset : synsets) {
+				if (synset.getType().equals(SynsetType.NOUN)) {
+					possible_hypernyms.addAll(Arrays.asList(((NounSynset) synset).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.NOUN)).collect(Collectors.toList()));
+				} else if (synset.getType().equals(SynsetType.VERB)) {
+					possible_hypernyms.addAll(Arrays.asList(((VerbSynset) synset).getHypernyms()).stream().filter(hypernym -> hypernym.getType().equals(SynsetType.VERB)).collect(Collectors.toList()));
+				}
+			}
+			if (possible_hypernyms == null || possible_hypernyms.size() == 0) {
 				System.err.println("Could not find a hypernym for " + word);
 				return could_not_generalize_placeholder;
 			}
-			if (possible_hypernym == null || possible_hypernym.getWordForms().length == 0) {
-				return could_not_generalize_placeholder;
+			for (Synset possible_hypernym : possible_hypernyms) {
+				if (possible_hypernym.getWordForms().length > 0) {
+					return possible_hypernym.getWordForms()[0];
+				}
 			}
-			return possible_hypernym.getWordForms()[0];
+			return could_not_generalize_placeholder;
 		} else if (System.getProperty("lang").equals("nl")) {
 			// Still to be determined what I will do with this.
 			throw new RuntimeException("Kan geen generalisatie vinden voor nederlandse woorden");

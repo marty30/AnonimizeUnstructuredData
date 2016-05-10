@@ -70,7 +70,7 @@ public class ClusteringDocuments {
 		settings.getSettingsMap().put("bevat_kopteksten", new Settings.Setting("bevat_kopteksten", "true"));
 //		settings.getSettingsMap().get("beginrij").setValue("" + Integer.parseInt(settings.getSettingsMap().get("beginrij").getValue()) + 1);
 		List<DataEntry> dataEntries_raw = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv"), settings, headers);
-		List<DataEntry> dataEntries_anon = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_SmartHashing2.csv"), settings, headers);
+		List<DataEntry> dataEntries_anon = FileReader.readFile(new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_GeneralizeOrSuppress.csv"), settings, headers);
 		for (DataEntry dataEntry : dataEntries_raw) {
 			StringBuilder content = new StringBuilder();
 			LinkedList<String> partition = new LinkedList<>();

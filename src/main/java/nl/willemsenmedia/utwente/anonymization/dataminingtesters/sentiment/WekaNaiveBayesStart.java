@@ -40,7 +40,7 @@ public class WekaNaiveBayesStart {
 	public static void main(String[] args) throws Exception {
 		//get file
 //		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\datasets\\SFU_Review_Corpus.arff";
-		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_SmartHashing2.arff";
+		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_GeneralizeOrSuppress.arff";
 //		String filename = "C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_preprocessed.arff";
 		// read file
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));

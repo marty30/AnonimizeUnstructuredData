@@ -51,7 +51,7 @@ public class Word2Vec {
 		// Config
 		int max_words_for_testing = 100;
 		File filePath_raw = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus.csv");
-		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_SmartHashing2.csv");
+		File filePath_anon = new File("C:\\Users\\Martijn\\Dropbox\\Studie\\College\\Module11&12\\ResearchProject-Ynformed\\JavaApplicatie\\AnonimizeUnstructuredData\\SFU_Review_Corpus_GeneralizeOrSuppress2.csv");
 		AnonimizationController.setAnonyzationTechnique(new HashSentence());
 
 		log.info("Load & Vectorize Sentences....");
@@ -102,7 +102,9 @@ public class Word2Vec {
 			log.info("Closest Words for " + word + " / " + anonimizeString(word) + ":");
 			Collection<String> lst_raw = word2Vec_raw.wordsNearest(word, 50);
 			Collection<String> lst_anon = word2Vec_anon.wordsNearest(anonimizeString(word), 50);
-			Collection<String> raw_list_anonimized = lst_raw.stream().map(Word2Vec::anonimizeString).collect(Collectors.toCollection(LinkedList::new));
+			lst_anon.addAll(word2Vec_anon.wordsNearest(word, 50));
+			Collection<String> raw_list_anonimized = lst_raw.stream().map(Word2Vec::anonimizeString).collect(Collectors.toList());
+			raw_list_anonimized.addAll(lst_raw);
 			//Now compare the two anonymous lists
 			int the_same = 0;
 			for (String item : raw_list_anonimized) {

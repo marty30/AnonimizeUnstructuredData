@@ -116,7 +116,7 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 	public static void exportData() {
 		if (!instance.done) {
 			if (!System.getProperty("useGUI").equals("false"))
-				//TODO ik weet nog niet zo goed wat ik hiermee ga doen.
+				//TO DO ik weet nog niet zo goed wat ik hiermee ga doen.
 				instance.call();
 			else {
 				while (!instance.done) {
@@ -178,7 +178,8 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 
 	@Override
 	public List<Callable<DataEntry>> call() {
-		updateStatus(-1);
+		if (!System.getProperty("useGUI").equals("false"))
+			Platform.runLater(() -> updateStatus(-1));
 		List<Callable<DataEntry>> preprocess_todolist = new ArrayList<>();
 		for (DataEntry raw_entry : this.raw_data) {
 			long starttime = System.currentTimeMillis();

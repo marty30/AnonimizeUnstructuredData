@@ -67,4 +67,19 @@ public class DataEntry implements Cloneable {
 	public void setPreProcessingTime(long preProcessingTime) {
 		this.preProcessingTime = preProcessingTime;
 	}
+
+	public void replace(String search, String replace) {
+		getDataAttributes().forEach(dataAttribute -> dataAttribute.setData(dataAttribute.getData().replace(search, replace)));
+	}
+
+	public void deleteChars(String charsToRemove) {
+		for (DataAttribute dataAttribute : getDataAttributes()) {
+			String data = dataAttribute.getData();
+			char[] chars = charsToRemove.toCharArray();
+			for (char c : chars) {
+				data = data.replace("" + c, "");
+			}
+			dataAttribute.setData(data);
+		}
+	}
 }
