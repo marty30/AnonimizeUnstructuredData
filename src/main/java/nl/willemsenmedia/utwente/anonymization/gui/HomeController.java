@@ -1,9 +1,12 @@
 package nl.willemsenmedia.utwente.anonymization.gui;
 
 import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import nl.willemsenmedia.utwente.anonymization.Main;
@@ -16,6 +19,7 @@ import nl.willemsenmedia.utwente.anonymization.data.reading.FileReader;
 import nl.willemsenmedia.utwente.anonymization.settings.Settings;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -157,7 +161,31 @@ public class HomeController implements Initializable {
 							regex_row++;
 						}
 					}
+					Button button = new Button("Voeg regex toe");
+					button.addEventHandler(EventType.ROOT, event -> {
+						if (event.getEventType().equals(MouseEvent.MOUSE_CLICKED)) {
+							//Add entry to settings
+							Settings.Setting.Entry entry = new Settings.Setting.Entry();
+							JAXBElement<Settings.Setting.Entry> jax = new JAXBElement<>(new QName(null, "entry"), Settings.Setting.Entry.class, entry);
+							setting.getContent().add(jax);
+
+							TextField textField_search = new TextField();
+							textField_search.textProperty().setValue(entry.getRegexSearch());
+							textField_search.textProperty().addListener((ev) -> {
+								entry.setRegexSearch(textField_search.getText());
+							});
+							TextField textField_replace = new TextField();
+							textField_replace.textProperty().setValue(entry.getRegexReplace());
+							textField_replace.textProperty().addListener((ev) -> {
+								entry.setRegexReplace(textField_replace.getText());
+							});
+
+							//Insert setting with
+							regex_panel.addRow(getRowCount(regex_panel), textField_search, textField_replace);
+						}
+					});
 					panel.add(regex_panel, 0, row, 2, 1);
+					panel.add(button, 0, ++row, 2, 1);
 				} else {
 					if (!System.getProperty("technique").equals("SmartHashing")) {
 						switch (setting.getName()) {
@@ -176,6 +204,20 @@ public class HomeController implements Initializable {
 			}
 		}
 		return panel;
+	}
+
+	private int getRowCount(GridPane pane) {
+		int numRows = pane.getRowConstraints().size();
+		for (int i = 0; i < pane.getChildren().size(); i++) {
+			Node child = pane.getChildren().get(i);
+			if (child.isManaged()) {
+				Integer rowIndex = GridPane.getRowIndex(child);
+				if (rowIndex != null) {
+					numRows = Math.max(numRows, rowIndex + 1);
+				}
+			}
+		}
+		return numRows;
 	}
 
 	private Control getInputElement(Settings.Setting setting) {
