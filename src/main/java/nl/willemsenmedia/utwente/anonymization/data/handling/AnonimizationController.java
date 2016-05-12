@@ -165,11 +165,18 @@ public class AnonimizationController implements Callable<List<Callable<DataEntry
 			if (workDone > max) {
 				workDone = max;
 			}
-			if (workDone == -1) {
-				progressProperty.setValue(-1);
-			} else {
-				progressProperty.setValue(workDone / max);
-			}
+
+			//Avoid multi threading problems
+			final double finalWorkDone = workDone;
+			final double finalMax = max;
+			Platform.runLater(() -> {
+				if (finalWorkDone == -1) {
+					progressProperty.setValue(-1);
+				} else {
+					progressProperty.setValue(finalWorkDone / finalMax);
+				}
+			});
+
 		}
 		System.out.printf("\t- Entry " + (index + 1) + " van de " + raw_data.size() + " aan het verwerken. Dit is %.2f%% van het totaal.\r", (double) (index + 1) / raw_data.size() * 100);
 		System.out.flush();
